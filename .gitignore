@@ -20,7 +20,9 @@ interviewquestbackend/mvnw.cmd
 interviewquestbackend/src/main/resources/application.properties
 
 # Frontend Node modules & Builds
-frontend/node_modules/
-frontend/dist/
-frontend/.env*.local
+interviewquestfrontend/node_modules/
+interviewquestfrontend/dist/
+interviewquestfrontend/.env*
+interviewquestfrontend/.env.local
+interviewquestfrontend/.env.*
 
