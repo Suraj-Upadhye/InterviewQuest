@@ -2,9 +2,12 @@ package com.surajupadhye.interviewquestbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "interview_experiences")
@@ -51,6 +54,18 @@ public class InterviewExperience {
     @OrderBy("stageNumber ASC")
     @Builder.Default
     private List<InterviewExperienceStage> stages = new ArrayList<>();
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "experience_upvotes",
+        joinColumns = @JoinColumn(name = "experience_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default
+    private Set<User> upvotingUsers = new HashSet<>();
+
+
 
     @PrePersist
     protected void onCreate() {
