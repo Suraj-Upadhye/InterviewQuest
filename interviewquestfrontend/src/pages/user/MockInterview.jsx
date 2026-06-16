@@ -1,22 +1,471 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Brain } from 'lucide-react';
+import API from '../../services/api';
+import { 
+  ArrowLeft, Brain, Send, User as UserIcon, Loader2, Sparkles, 
+  Settings2, Key, Info, Award, AlertCircle, RefreshCw, LogOut 
+} from 'lucide-react';
 
 const MockInterview = () => {
   const navigate = useNavigate();
+  const messagesEndRef = useRef(null);
+
+  const [sessions, setSessions] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
+
+  // Config setup states
+  const [companyName, setCompanyName] = useState('');
+  const [topicOrSkills, setTopicOrSkills] = useState('');
+  const [interviewType, setInterviewType] = useState('TECHNICAL');
+  const [userApiKey, setUserApiKey] = useState('');
+
+  // Active interview states
+  const [activeSession, setActiveSession] = useState(null);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [evaluating, setEvaluating] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchSessionHistory();
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeSession?.conversation, chatLoading]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const fetchSessionHistory = async () => {
+    try {
+      setHistoryLoading(true);
+      const response = await API.get('/api/mock-interviews');
+      setSessions(response.data || []);
+    } catch (err) {
+      console.error('Failed to load mock interview history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleStart = async (e) => {
+    e.preventDefault();
+    try {
+      setError('');
+      setChatLoading(true);
+
+      const payload = {
+        companyName: companyName.trim() || 'General',
+        topicOrSkills: topicOrSkills.trim() || 'Core Software Engineering',
+        interviewType
+      };
+
+      const headers = {};
+      if (userApiKey.trim()) {
+        headers['X-Groq-Api-Key'] = userApiKey.trim();
+      }
+
+      const response = await API.post('/api/mock-interviews/start', payload, { headers });
+      setActiveSession(response.data);
+      setChatInput('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to start AI interview. Make sure you provided a valid Groq API Key.');
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleSendResponse = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const textToSend = chatInput.trim();
+    setChatInput('');
+    setError('');
+
+    // Optimistically update conversation UI local state
+    const optimisticMessage = { role: 'user', content: textToSend, timestamp: new Date().toISOString() };
+    const updatedConversation = [...activeSession.conversation, optimisticMessage];
+    setActiveSession({
+      ...activeSession,
+      conversation: updatedConversation
+    });
+
+    try {
+      setChatLoading(true);
+      const headers = {};
+      if (userApiKey.trim()) {
+        headers['X-Groq-Api-Key'] = userApiKey.trim();
+      }
+
+      const response = await API.post(
+        `/api/mock-interviews/${activeSession.id}/chat`,
+        { response: textToSend },
+        { headers }
+      );
+      setActiveSession(response.data);
+    } catch (err) {
+      setError('Connection to Groq API was lost. Could not load next response.');
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleEvaluate = async () => {
+    if (evaluating) return;
+
+    try {
+      setError('');
+      setEvaluating(true);
+      
+      const headers = {};
+      if (userApiKey.trim()) {
+        headers['X-Groq-Api-Key'] = userApiKey.trim();
+      }
+
+      const response = await API.post(`/api/mock-interviews/${activeSession.id}/evaluate`, {}, { headers });
+      setActiveSession(response.data);
+      fetchSessionHistory(); // Update logs
+    } catch (err) {
+      setError('Evaluation failed. Could not generate scorecard.');
+    } finally {
+      setEvaluating(false);
+    }
+  };
+
+  const resumeSession = (session) => {
+    setActiveSession(session);
+    setSelectedTopic(null);
+  };
+
+  const resetInterviewPanel = () => {
+    setActiveSession(null);
+    setError('');
+    setActiveTab('new');
+  };
+
+  // Check if session has evaluation scorecard in conversation list
+  const getScorecardMessage = () => {
+    if (!activeSession) return null;
+    return activeSession.conversation.find(
+      msg => msg.role === 'assistant' && msg.content.includes('### Mock Interview Scorecard')
+    );
+  };
+
+  const isEvaluated = () => {
+    return getScorecardMessage() !== null;
+  };
+
+  if (historyLoading && !activeSession) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
+        <p className="text-slate-400 text-sm">Loading interview panel...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-8 flex flex-col items-center justify-center">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center">
-        <Brain className="w-12 h-12 mx-auto text-purple-400 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">AI Mock Interviews</h2>
-        <p className="text-slate-500 text-sm mb-6">Conduct simulated HR & technical interviews powered by Groq AI here.</p>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="inline-flex items-center space-x-2 bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl transition cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
-        </button>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 relative overflow-hidden flex flex-col">
+      {/* Background decorations */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px]" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[100px]" />
+
+      <div className="max-w-4xl mx-auto w-full z-10 relative flex-grow flex flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between mb-8 border-b border-slate-900 pb-5 shrink-0">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={activeSession ? resetInterviewPanel : () => navigate('/dashboard')}
+              className="p-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white cursor-pointer"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center">
+                <Brain className="w-6 h-6 text-indigo-400 mr-2 shrink-0 animate-pulse" />
+                AI Mock Interviews
+              </h1>
+              <p className="text-xs text-slate-500">
+                {activeSession 
+                  ? `Interview with AI (${activeSession.companyName} - ${activeSession.interviewType})`
+                  : 'Simulate HR & technical rounds using Groq AI'}
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {error && (
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center mb-6 shrink-0 flex items-center justify-center space-x-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* SETUP SCREEN */}
+        {!activeSession && (
+          <div className="space-y-6 shrink-0">
+            <div className="flex border-b border-slate-900 space-x-6">
+              <button
+                onClick={() => setActiveTab('new')}
+                className={`flex items-center space-x-2 pb-4 border-b-2 font-medium text-sm transition cursor-pointer ${
+                  activeTab === 'new' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Configure New Interview</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`flex items-center space-x-2 pb-4 border-b-2 font-medium text-sm transition cursor-pointer ${
+                  activeTab === 'history' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <History className="w-4 h-4" />
+                <span>Interview History</span>
+              </button>
+            </div>
+
+            {activeTab === 'new' ? (
+              <form onSubmit={handleStart} className="bg-slate-900/60 border border-slate-850 rounded-3xl p-8 space-y-6 max-w-xl mx-auto shadow-xl shadow-slate-950/20">
+                
+                {/* Form fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5 flex items-center">
+                      <Settings2 className="w-3.5 h-3.5 mr-1" /> Target Company
+                    </label>
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="e.g. Google, Amazon"
+                      className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5 flex items-center">
+                      <Settings2 className="w-3.5 h-3.5 mr-1" /> Topic / Focus Skills
+                    </label>
+                    <input
+                      type="text"
+                      value={topicOrSkills}
+                      onChange={(e) => setTopicOrSkills(e.target.value)}
+                      placeholder="e.g. Java, System Design"
+                      className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Interview Round Type</label>
+                  <select
+                    value={interviewType}
+                    onChange={(e) => setInterviewType(e.target.value)}
+                    className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200 cursor-pointer"
+                  >
+                    <option value="TECHNICAL">Technical Round (Coding & Design)</option>
+                    <option value="HR">HR Round (Behavioral & Resume)</option>
+                    <option value="SKILL_SPECIFIC">Skill-Specific Assessment (Core concepts)</option>
+                  </select>
+                </div>
+
+                {/* API Key settings */}
+                <div className="p-4 bg-indigo-950/10 border border-indigo-950 rounded-2xl space-y-3">
+                  <div className="flex items-start space-x-2 text-xs text-indigo-400">
+                    <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">
+                      You can optionally input your own **Groq API Key** to bypass system credit limits. Your key remains private and is only used to route requests.
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
+                      <Key className="h-4 w-4" />
+                    </div>
+                    <input
+                      type="password"
+                      value={userApiKey}
+                      onChange={(e) => setUserApiKey(e.target.value)}
+                      placeholder="gsk_..."
+                      className="block w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl focus:outline-none focus:border-indigo-500 text-xs text-slate-200 placeholder-slate-600"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={chatLoading}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition cursor-pointer text-sm shadow-md flex justify-center items-center"
+                >
+                  {chatLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Loading Interviewer...
+                    </>
+                  ) : (
+                    'Start AI Interview'
+                  )}
+                </button>
+              </form>
+            ) : (
+              // Historical log sessions list
+              <div className="space-y-3">
+                {sessions.length === 0 ? (
+                  <div className="text-center py-12 bg-slate-900/10 border border-slate-900 border-dashed rounded-3xl text-slate-500">
+                    <Brain className="w-10 h-10 mx-auto mb-3 text-slate-850" />
+                    <p className="text-sm">No mock interview sessions recorded yet.</p>
+                  </div>
+                ) : (
+                  sessions.map((session, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-slate-900/30 border border-slate-900 rounded-2xl p-5 flex justify-between items-center hover:border-slate-850 transition"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                          <Brain className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-200">{session.companyName} Mock Session</h4>
+                          <p className="text-xs text-slate-500 mt-1">
+                            Type: {session.interviewType} | Focus: {session.topicOrSkills}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => resumeSession(session)}
+                        className="bg-slate-950 border border-slate-850 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+                      >
+                        Review / Open
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ACTIVE MOCK INTERVIEW CHAT BOARD */}
+        {activeSession && (
+          <div className="flex-grow flex flex-col h-[550px] bg-slate-900/40 border border-slate-850 rounded-3xl overflow-hidden shadow-2xl relative">
+            
+            {/* Top Details Header */}
+            <div className="px-6 py-4 bg-slate-900/60 border-b border-slate-850 flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="font-semibold text-slate-200 text-sm">
+                  Interviewer AI ({activeSession.companyName})
+                </h3>
+                <p className="text-[10px] text-slate-500 mt-0.5">Topic: {activeSession.topicOrSkills}</p>
+              </div>
+
+              {!isEvaluated() && (
+                <button
+                  onClick={handleEvaluate}
+                  disabled={evaluating}
+                  className="flex items-center space-x-1.5 bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600/20 px-3.5 py-2 rounded-xl transition text-xs font-semibold cursor-pointer disabled:opacity-50"
+                >
+                  {evaluating ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Grading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>End & Evaluate</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Message list window */}
+            <div className="flex-grow p-6 overflow-y-auto space-y-4 min-h-0 bg-slate-950/20">
+              {activeSession.conversation
+                .filter(msg => msg.role !== 'system') // Hide system parameters
+                .map((msg, index) => {
+                  const isAssistant = msg.role === 'assistant';
+                  const isScorecard = msg.content.includes('### Mock Interview Scorecard');
+
+                  if (isScorecard) {
+                    return (
+                      <div key={index} className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-950/20 to-purple-950/20 border border-indigo-900/30 rounded-2xl p-6 my-4 shadow-xl">
+                        <Award className="w-8 h-8 text-indigo-400 mb-3" />
+                        <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line prose-invert">
+                          {msg.content}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={index}
+                      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className={`flex items-start space-x-2.5 max-w-[80%] ${isAssistant ? 'flex-row' : 'flex-row-reverse space-x-reverse'}`}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          isAssistant ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' : 'bg-purple-600/10 text-purple-400 border border-purple-500/20'
+                        }`}>
+                          {isAssistant ? <Brain className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
+                        </div>
+                        <div className={`p-4 rounded-2xl text-xs leading-relaxed ${
+                          isAssistant 
+                            ? 'bg-slate-900/60 border border-slate-900 text-slate-200 rounded-tl-none' 
+                            : 'bg-indigo-600 text-white rounded-tr-none'
+                        }`}>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                      <Brain className="w-4 h-4" />
+                    </div>
+                    <div className="px-4 py-3 bg-slate-900/60 border border-slate-900 rounded-2xl rounded-tl-none flex items-center">
+                      <div className="flex space-x-1">
+                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
+                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Form at bottom */}
+            {!isEvaluated() && (
+              <form onSubmit={handleSendResponse} className="p-4 bg-slate-900/60 border-t border-slate-850 flex items-center space-x-3 shrink-0">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  disabled={chatLoading}
+                  placeholder={chatLoading ? "Waiting for AI..." : "Type your response here..."}
+                  className="flex-grow bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-600"
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
