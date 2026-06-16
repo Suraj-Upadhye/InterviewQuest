@@ -1,0 +1,21 @@
+# App configuration name
+spring.application.name=interviewquestbackend
+
+# PostgreSQL Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/YOUR_DATABASE_NAME
+spring.datasource.username=YOUR_POSTGRES_USERNAME
+spring.datasource.password=YOUR_POSTGRES_PASSWORD
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA and Hibernate configuration
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Security Configuration - Enable detailed logs if needed
+logging.level.org.springframework.security=INFO
+
+# Application JWT configuration
+interviewquest.app.jwtSecret=YOUR_BASE64_ENCODED_JWT_SECRET_KEY
+interviewquest.app.jwtExpirationMs=86400000
