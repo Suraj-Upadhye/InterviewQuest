@@ -75,8 +75,9 @@ public class InterviewExperienceController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Boolean isSelected,
+            @RequestParam(required = false) ExperienceStatus status,
             Pageable pageable) {
-        Page<InterviewExperience> experiences = experienceService.getAllExperiencesForAdmin(companyId, year, role, isSelected, pageable);
+        Page<InterviewExperience> experiences = experienceService.getAllExperiencesForAdmin(companyId, year, role, isSelected, status, pageable);
         return ResponseEntity.ok(experiences);
     }
 

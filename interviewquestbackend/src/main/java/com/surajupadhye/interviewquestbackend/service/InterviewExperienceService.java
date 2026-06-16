@@ -25,8 +25,8 @@ public class InterviewExperienceService {
         return experienceRepository.filterExperiences(ExperienceStatus.APPROVED, companyId, year, role, isSelected, pageable);
     }
 
-    public Page<InterviewExperience> getAllExperiencesForAdmin(Long companyId, Integer year, String role, Boolean isSelected, Pageable pageable) {
-        return experienceRepository.filterExperiences(null, companyId, year, role, isSelected, pageable);
+    public Page<InterviewExperience> getAllExperiencesForAdmin(Long companyId, Integer year, String role, Boolean isSelected, ExperienceStatus status, Pageable pageable) {
+        return experienceRepository.filterExperiences(status, companyId, year, role, isSelected, pageable);
     }
 
     public InterviewExperience getExperienceById(Long id) {

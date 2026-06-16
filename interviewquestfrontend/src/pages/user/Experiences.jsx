@@ -4,7 +4,7 @@ import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   ArrowLeft, Compass, Plus, ArrowUp, ThumbsUp, CheckCircle, 
-  XCircle, Loader2, Sparkles, Filter, X, ChevronLeft, ChevronRight, AlertCircle 
+  XCircle, Loader2, Sparkles, Filter, X, ChevronLeft, ChevronRight, AlertCircle, Trash2
 } from 'lucide-react';
 
 const Experiences = () => {
@@ -358,7 +358,7 @@ const Experiences = () => {
                           </button>
                           <button
                             onClick={(e) => handleStatusUpdate(exp.id, 'REJECTED', e)}
-                            className="bg-red-650 hover:bg-red-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg cursor-pointer"
+                            className="bg-red-750 hover:bg-red-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg cursor-pointer"
                           >
                             Reject
                           </button>
@@ -435,7 +435,7 @@ const Experiences = () => {
               {/* Scrollable Stage-by-Stage List */}
               <div className="flex-grow overflow-y-auto space-y-6 pr-2">
                 {activeDetail.stages?.map((stage, idx) => (
-                  <div key={idx} className="bg-slate-955/40 border border-slate-850 rounded-2xl p-5 space-y-3">
+                  <div key={idx} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 space-y-3">
                     <h4 className="font-semibold text-slate-200 text-sm flex items-center">
                       <span className="w-5 h-5 rounded-md bg-indigo-600/10 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/20 mr-2 shrink-0">
                         {stage.stageNumber}
@@ -528,7 +528,7 @@ const Experiences = () => {
                     </div>
 
                     {submitStages.map((stage, idx) => (
-                      <div key={idx} className="bg-slate-955/40 border border-slate-850 rounded-2xl p-5 relative space-y-3">
+                      <div key={idx} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 relative space-y-3">
                         <button
                           type="button"
                           disabled={submitStages.length === 1}
@@ -568,7 +568,7 @@ const Experiences = () => {
                   <button
                     type="button"
                     onClick={() => setSubmitOpen(false)}
-                    className="w-1/2 py-2.5 bg-slate-955 border border-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
+                    className="w-1/2 py-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
                   >
                     Cancel
                   </button>

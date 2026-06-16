@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, BookOpen, Compass, Code, Brain, User as UserIcon, Calendar } from 'lucide-react';
+import { LogOut, BookOpen, Compass, Code, Brain, User as UserIcon, Calendar, Building2, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -17,6 +17,7 @@ const Dashboard = () => {
     { title: 'Skill Assessments', icon: BookOpen, desc: 'Take timed tests to assess your knowledge and track your stats.', link: '/assessments', color: 'from-emerald-500 to-teal-500' },
     { title: 'AI Mock Interviews', icon: Brain, desc: 'Conduct simulated HR & technical interviews powered by Groq AI.', link: '/mock-interview', color: 'from-purple-500 to-indigo-500' },
     { title: 'Placement Experiences', icon: Compass, desc: 'Browse and search structured, stage-wise reviews from seniors.', link: '/experiences', color: 'from-amber-500 to-orange-500' },
+    { title: 'Companies Directory', icon: Building2, desc: 'Browse and follow tracked recruiters, or manage corporate panels.', link: '/companies', color: 'from-sky-500 to-indigo-500' },
     { title: 'My Profile', icon: UserIcon, desc: 'Edit your education, projects, skills, and coding profiles.', link: '/profile', color: 'from-pink-500 to-rose-500' }
   ];
 
@@ -35,13 +36,24 @@ const Dashboard = () => {
             </h1>
             <p className="text-xs text-slate-500">Welcome back, {user?.username} ({user?.role?.replace('ROLE_', '')})</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            {user?.role === 'ROLE_ADMIN' && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center space-x-2 bg-rose-950/40 border border-rose-900/30 hover:bg-rose-900/30 text-rose-350 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span>Admin Panel</span>
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </header>
 
         {/* Hero Welcome banner */}

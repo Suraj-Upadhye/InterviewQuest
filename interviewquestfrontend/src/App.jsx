@@ -10,6 +10,7 @@ import Practice from './pages/user/Practice';
 import Assessments from './pages/user/Assessments';
 import MockInterview from './pages/user/MockInterview';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import Companies from './pages/user/Companies';
 
 // Route Guard for authenticated candidates
 const PrivateRoute = ({ children }) => {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/experiences" element={<PrivateRoute><Experiences /></PrivateRoute>} />
+          <Route path="/companies" element={<PrivateRoute><Companies /></PrivateRoute>} />
           <Route path="/practice" element={<PrivateRoute><Practice /></PrivateRoute>} />
           <Route path="/assessments" element={<PrivateRoute><Assessments /></PrivateRoute>} />
           <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
