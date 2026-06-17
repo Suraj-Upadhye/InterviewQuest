@@ -11,6 +11,7 @@ import Assessments from './pages/user/Assessments';
 import MockInterview from './pages/user/MockInterview';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Companies from './pages/user/Companies';
+import LandingPage from './pages/LandingPage';
 
 // Route Guard for authenticated candidates
 const PrivateRoute = ({ children }) => {
@@ -68,7 +69,7 @@ function App() {
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
           {/* Default Redirect Fallbacks */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
