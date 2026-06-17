@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 import { 
   ArrowLeft, Brain, Send, User as UserIcon, Loader2, Sparkles, 
-  Settings2, Key, Info, Award, AlertCircle, RefreshCw, LogOut 
-} from 'lucide-react';
+  Settings2, Key, Info, Award, AlertCircle, RefreshCw, LogOut, History,
+  Mic, MicOff, Volume2, VolumeX
+} from 'lucide-react';import '../../App.css';
 
 const MockInterview = () => {
   const navigate = useNavigate();
@@ -27,9 +28,144 @@ const MockInterview = () => {
   const [evaluating, setEvaluating] = useState(false);
   const [error, setError] = useState('');
 
+  // Speech and Audio States
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => {
+    return localStorage.getItem('interview_muted') === 'true';
+  });
+  const recognitionRef = useRef(null);
+
   useEffect(() => {
     fetchSessionHistory();
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
   }, []);
+
+  const speakText = (text) => {
+    if (!('speechSynthesis' in window) || isMuted) return;
+
+    window.speechSynthesis.cancel();
+
+    // Remove markdown symbols for cleaner speech readout
+    const cleanedText = text
+      .replace(/###/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/-\s/g, '')
+      .replace(/`+/g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanedText);
+    utterance.rate = 1.15; // Speed up voice for a more natural conversation rate
+    
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google')) || 
+                  voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('natural')) ||
+                  voices.find(v => v.lang.startsWith('en'));
+    
+    if (voice) {
+      utterance.voice = voice;
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(prev => {
+      const newVal = !prev;
+      localStorage.setItem('interview_muted', String(newVal));
+      if (newVal && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+      return newVal;
+    });
+  };
+
+  const toggleListening = async () => {
+    // Detect Brave Browser compatibility block
+    const isBrave = navigator.brave && typeof navigator.brave.isBrave === 'function' && await navigator.brave.isBrave();
+    if (isBrave) {
+      setError('Brave Browser blocks the native Speech Recognition API for privacy reasons (due to sending audio to Google). Please use Google Chrome, Microsoft Edge, or Safari for voice capabilities.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError('Speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+
+      rec.onstart = () => {
+        setIsListening(true);
+        setError('');
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          setIsSpeaking(false);
+        }
+      };
+
+      rec.onresult = (event) => {
+        let transcript = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        setChatInput(transcript);
+      };
+
+      rec.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech') {
+          setError(`Microphone error: ${event.error}. Please check permissions.`);
+        }
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (e) {
+      console.error('Failed to start speech recognition:', e);
+      setError('Could not access microphone.');
+      setIsListening(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSession && activeSession.conversation.length > 0) {
+      const messages = activeSession.conversation;
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        speakText(lastMessage.content);
+      }
+    }
+  }, [activeSession?.conversation?.length]);
 
   useEffect(() => {
     scrollToBottom();
@@ -81,6 +217,11 @@ const MockInterview = () => {
   const handleSendResponse = async (e) => {
     e.preventDefault();
     if (!chatInput.trim() || chatLoading) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
 
     const textToSend = chatInput.trim();
     setChatInput('');
@@ -138,7 +279,6 @@ const MockInterview = () => {
 
   const resumeSession = (session) => {
     setActiveSession(session);
-    setSelectedTopic(null);
   };
 
   const resetInterviewPanel = () => {
@@ -362,38 +502,54 @@ const MockInterview = () => {
                 <p className="text-[10px] text-slate-500 mt-0.5">Topic: {activeSession.topicOrSkills}</p>
               </div>
 
-              {!isEvaluated() && (
+              <div className="flex items-center space-x-3">
                 <button
-                  onClick={handleEvaluate}
-                  disabled={evaluating}
-                  className="flex items-center space-x-1.5 bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600/20 px-3.5 py-2 rounded-xl transition text-xs font-semibold cursor-pointer disabled:opacity-50"
+                  type="button"
+                  onClick={toggleMute}
+                  className={`p-2 rounded-xl border transition cursor-pointer ${
+                    isMuted 
+                      ? 'bg-slate-950 border-slate-800/80 text-slate-500 hover:text-slate-400' 
+                      : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20'
+                  }`}
+                  title={isMuted ? "Unmute AI Voice" : "Mute AI Voice"}
                 >
-                  {evaluating ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Grading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>End & Evaluate</span>
-                    </>
-                  )}
+                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                 </button>
-              )}
+
+                {!isEvaluated() && (
+                  <button
+                    onClick={handleEvaluate}
+                    disabled={evaluating}
+                    className="flex items-center space-x-1.5 bg-rose-600/10 border border-rose-500/20 text-rose-400 hover:bg-rose-600/20 px-3.5 py-2 rounded-xl transition text-xs font-semibold cursor-pointer disabled:opacity-50"
+                  >
+                    {evaluating ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Grading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>End & Evaluate</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Message list window */}
             <div className="flex-grow p-6 overflow-y-auto space-y-4 min-h-0 bg-slate-950/20">
-              {activeSession.conversation
-                .filter(msg => msg.role !== 'system') // Hide system parameters
-                .map((msg, index) => {
+              {(() => {
+                const visibleMessages = activeSession.conversation.filter(msg => msg.role !== 'system');
+                return visibleMessages.map((msg, index) => {
                   const isAssistant = msg.role === 'assistant';
                   const isScorecard = msg.content.includes('### Mock Interview Scorecard');
+                  const isLastMessage = index === visibleMessages.length - 1;
 
                   if (isScorecard) {
                     return (
-                      <div key={index} className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-950/20 to-purple-950/20 border border-indigo-900/30 rounded-2xl p-6 my-4 shadow-xl">
+                      <div key={index} className="max-w-2xl mx-auto bg-gradient-to-r from-indigo-950/20 to-purple-950/20 border border-indigo-900/30 rounded-2xl p-6 my-4 shadow-xl animate-fadeIn">
                         <Award className="w-8 h-8 text-indigo-400 mb-3" />
                         <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line prose-invert">
                           {msg.content}
@@ -405,12 +561,15 @@ const MockInterview = () => {
                   return (
                     <div
                       key={index}
-                      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'}`}
+                      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} animate-fadeIn`}
                     >
                       <div className={`flex items-start space-x-2.5 max-w-[80%] ${isAssistant ? 'flex-row' : 'flex-row-reverse space-x-reverse'}`}>
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 relative ${
                           isAssistant ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' : 'bg-purple-600/10 text-purple-400 border border-purple-500/20'
                         }`}>
+                          {isAssistant && isLastMessage && isSpeaking && (
+                            <span className="absolute inset-0 rounded-lg bg-indigo-500/20 border border-indigo-500/40 animate-ping" />
+                          )}
                           {isAssistant ? <Brain className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
                         </div>
                         <div className={`p-4 rounded-2xl text-xs leading-relaxed ${
@@ -423,7 +582,8 @@ const MockInterview = () => {
                       </div>
                     </div>
                   );
-                })}
+                });
+              })()}
 
               {chatLoading && (
                 <div className="flex justify-start">
@@ -444,17 +604,58 @@ const MockInterview = () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Real-time Voice Sound Wave Visualizer */}
+            {isListening && (
+              <div className="px-6 py-2 bg-indigo-950/20 border-t border-slate-850 flex items-center justify-between shrink-0 animate-fadeIn">
+                <div className="flex items-center space-x-2.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                  <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Listening for voice...</span>
+                </div>
+                <div className="flex items-end space-x-1 h-5">
+                  <div className="sound-bar" />
+                  <div className="sound-bar" />
+                  <div className="sound-bar" />
+                  <div className="sound-bar" />
+                  <div className="sound-bar" />
+                </div>
+              </div>
+            )}
+
             {/* Input Form at bottom */}
             {!isEvaluated() && (
               <form onSubmit={handleSendResponse} className="p-4 bg-slate-900/60 border-t border-slate-850 flex items-center space-x-3 shrink-0">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  disabled={chatLoading}
-                  placeholder={chatLoading ? "Waiting for AI..." : "Type your response here..."}
-                  className="flex-grow bg-slate-950/50 border border-slate-800 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-600"
-                />
+                <div className="flex-grow relative">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    disabled={chatLoading}
+                    placeholder={
+                      chatLoading 
+                        ? "Waiting for AI..." 
+                        : isListening 
+                          ? "Listening... Speak clearly." 
+                          : "Type your response or click the mic to speak..."
+                    }
+                    className="w-full bg-slate-950/50 border border-slate-800 rounded-xl pl-4 pr-12 py-3 text-xs focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleListening}
+                    disabled={chatLoading}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition cursor-pointer disabled:opacity-45 ${
+                      isListening
+                        ? 'text-red-400 bg-red-500/10 hover:bg-red-500/25 animate-pulse'
+                        : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'
+                    }`}
+                    title={isListening ? "Stop Listening" : "Speak Response (Microphone)"}
+                  >
+                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={!chatInput.trim() || chatLoading}

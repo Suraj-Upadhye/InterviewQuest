@@ -33,8 +33,10 @@ public class MockInterviewService {
     @Value("${interviewquest.groq.apiKey:}")
     private String systemGroqApiKey;
 
-    private static final String GROQ_API_URL = "https://api.groq.com/openapi/v1/chat/completions";
-    private static final String DEFAULT_MODEL = "llama3-8b-8192";
+    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+    @Value("${interviewquest.groq.model:llama-3.3-70b-versatile}")
+    private String systemGroqModel;
 
     public List<MockInterview> getInterviewsByUser(Long userId) {
         return interviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -176,7 +178,7 @@ public class MockInterviewService {
             }
 
             Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("model", DEFAULT_MODEL);
+            requestBodyMap.put("model", systemGroqModel);
             requestBodyMap.put("messages", messagePayloads);
             requestBodyMap.put("temperature", 0.7);
 
