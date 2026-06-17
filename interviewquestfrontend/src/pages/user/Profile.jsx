@@ -4,7 +4,7 @@ import API from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { 
   ArrowLeft, Save, Plus, Trash2, GraduationCap, Code2, 
-  FolderGit2, Award, FileSpreadsheet, Loader2, Sparkles 
+  FolderGit2, Award, FileSpreadsheet, Loader2, Sparkles, FileText, Eye, X, ExternalLink 
 } from 'lucide-react';
 
 const Profile = () => {
@@ -17,6 +17,17 @@ const Profile = () => {
 
   // Tab management
   const [activeTab, setActiveTab] = useState('education');
+
+  // Resume states
+  const [resume, setResume] = useState(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const getResumePdfUrl = (url) => {
+    if (!url) return '';
+    return url.toLowerCase().endsWith('.pdf') ? url : `${url}.pdf`;
+  };
 
   // Form states matching database entities
   const [education, setEducation] = useState([]);
@@ -38,7 +49,73 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchResume();
   }, []);
+
+  const fetchResume = async () => {
+    try {
+      setResumeLoading(true);
+      const response = await API.get('/api/users/profile/resume');
+      setResume(response.data);
+    } catch (err) {
+      setResume(null);
+    } finally {
+      setResumeLoading(false);
+    }
+  };
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size exceeds the 2MB limit. Please choose a smaller PDF.');
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      setError('Only PDF documents are allowed.');
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      setResumeUploading(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await API.post('/api/users/profile/resume', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setResume(response.data);
+      setSuccess('Resume uploaded successfully!');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload resume.');
+    } finally {
+      setResumeUploading(false);
+    }
+  };
+
+  const handleResumeDelete = async () => {
+    if (!window.confirm('Are you sure you want to permanently delete your resume?')) return;
+
+    try {
+      setError('');
+      setSuccess('');
+      setResumeLoading(true);
+      await API.delete('/api/users/profile/resume');
+      setResume(null);
+      setSuccess('Resume deleted successfully.');
+    } catch (err) {
+      setError('Failed to delete resume.');
+    } finally {
+      setResumeLoading(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -183,7 +260,8 @@ const Profile = () => {
     { id: 'skills', name: 'Skills & Achievements', icon: Code2 },
     { id: 'projects', name: 'Projects', icon: FolderGit2 },
     { id: 'certifications', name: 'Certifications', icon: Award },
-    { id: 'coding', name: 'Coding Profiles', icon: FileSpreadsheet }
+    { id: 'coding', name: 'Coding Profiles', icon: FileSpreadsheet },
+    { id: 'resume', name: 'Resume PDF', icon: FileText }
   ];
 
   return (
@@ -701,6 +779,121 @@ const Profile = () => {
                   />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB 6: RESUME PDF */}
+          {activeTab === 'resume' && (
+            <div className="space-y-6 bg-slate-900/30 border border-slate-900 rounded-3xl p-6">
+              <h3 className="text-lg font-semibold text-slate-200 flex items-center">
+                <FileText className="w-5 h-5 text-indigo-400 mr-2" /> Professional Resume
+              </h3>
+              
+              {resumeLoading ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mb-2" />
+                  <p className="text-xs">Loading resume status...</p>
+                </div>
+              ) : resume ? (
+                <div className="border border-slate-800 rounded-2xl p-6 bg-slate-900/40 space-y-4 animate-fadeIn">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-200">Uploaded Resume Document</h4>
+                        <p className="text-xs text-slate-500">Verified PDF Document</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewOpen(true)}
+                        className="flex items-center justify-center space-x-1.5 px-4 py-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>Preview PDF</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResumeDelete}
+                        className="flex items-center justify-center space-x-1.5 px-4 py-2 bg-red-950/40 border border-red-900/30 hover:bg-red-950/60 text-red-400 text-xs font-semibold rounded-xl transition cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-dashed border-slate-800 hover:border-slate-700 rounded-2xl p-8 bg-slate-950/25 transition flex flex-col items-center justify-center text-center">
+                  <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl mb-4 text-slate-400">
+                    <FileText className="w-10 h-10 animate-pulse text-indigo-400" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-slate-300 mb-1">Upload Your Resume</h4>
+                  <p className="text-xs text-slate-500 mb-4 max-w-xs">
+                    Please upload a PDF document representing your educational and technical achievements (Max size: 2MB).
+                  </p>
+                  
+                  <label className="relative cursor-pointer">
+                    <span className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md block">
+                      {resumeUploading ? (
+                        <span className="flex items-center space-x-1">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Uploading File...</span>
+                        </span>
+                      ) : (
+                        "Select PDF File"
+                      )}
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      disabled={resumeUploading}
+                      onChange={handleResumeUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {previewOpen && resume && (
+                <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 relative shadow-2xl flex flex-col h-[85vh] animate-scaleIn">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewOpen(false)}
+                      className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white rounded-lg transition cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    
+                    <div className="flex justify-between items-center mb-4 shrink-0 pr-12">
+                      <h3 className="text-md font-bold text-slate-200 flex items-center">
+                        <FileText className="w-5 h-5 text-indigo-400 mr-2" /> Resume Preview
+                      </h3>
+                      <a
+                        href={getResumePdfUrl(resume.resumeUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 hover:border-slate-700 text-indigo-400 hover:text-indigo-300 text-xs font-semibold rounded-xl transition cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Open in New Tab</span>
+                      </a>
+                    </div>
+
+                    <div className="flex-grow w-full bg-slate-950 border border-slate-900 rounded-2xl overflow-hidden min-h-0 relative">
+                      <iframe
+                        src={`${getResumePdfUrl(resume.resumeUrl)}#toolbar=0&navpanes=0&scrollbar=0`}
+                        title="Resume Preview"
+                        className="w-full h-full border-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
