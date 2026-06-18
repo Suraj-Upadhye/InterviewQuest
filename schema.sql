@@ -22,20 +22,6 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 
--- ----------------------------------------------------------------------------
--- Table: profiles
--- ----------------------------------------------------------------------------
-CREATE TABLE profiles (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
-    education JSONB NOT NULL DEFAULT '[]'::jsonb,
-    skills JSONB NOT NULL DEFAULT '[]'::jsonb,
-    projects JSONB NOT NULL DEFAULT '[]'::jsonb,
-    achievements JSONB NOT NULL DEFAULT '[]'::jsonb,
-    certifications JSONB NOT NULL DEFAULT '[]'::jsonb,
-    coding_profiles JSONB NOT NULL DEFAULT '{}'::jsonb,
-    CONSTRAINT fk_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
 -- ----------------------------------------------------------------------------
 -- Table: resumes

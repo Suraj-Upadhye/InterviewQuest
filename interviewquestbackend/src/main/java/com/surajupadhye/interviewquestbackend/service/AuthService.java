@@ -3,10 +3,8 @@ package com.surajupadhye.interviewquestbackend.service;
 import com.surajupadhye.interviewquestbackend.dto.JwtResponse;
 import com.surajupadhye.interviewquestbackend.dto.LoginRequest;
 import com.surajupadhye.interviewquestbackend.dto.RegisterRequest;
-import com.surajupadhye.interviewquestbackend.entity.Profile;
 import com.surajupadhye.interviewquestbackend.entity.Role;
 import com.surajupadhye.interviewquestbackend.entity.User;
-import com.surajupadhye.interviewquestbackend.repository.ProfileRepository;
 import com.surajupadhye.interviewquestbackend.repository.UserRepository;
 import com.surajupadhye.interviewquestbackend.security.JwtUtils;
 import com.surajupadhye.interviewquestbackend.security.UserDetailsImpl;
@@ -28,8 +26,6 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private ProfileRepository profileRepository;
 
     @Autowired
     private PasswordEncoder encoder;
@@ -67,11 +63,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // Auto-create empty profile linked to the user
-        Profile profile = Profile.builder()
-                .user(savedUser)
-                .build();
-        profileRepository.save(profile);
+
     }
 
     public JwtResponse login(LoginRequest loginRequest) {
