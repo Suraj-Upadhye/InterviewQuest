@@ -77,42 +77,39 @@ const Practice = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-slate-400 text-sm">Loading practice questions...</p>
+      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col justify-center items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-zinc-700 dark:text-zinc-400 mb-4" />
+        <p className="text-zinc-500 dark:text-zinc-400 text-xs">Loading practice questions...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[100px]" />
-
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
       <div className="max-w-3xl mx-auto z-10 relative">
+        
         {/* Header */}
-        <header className="flex items-center space-x-4 mb-10 border-b border-slate-900 pb-5">
+        <header className="flex items-center space-x-4 mb-10 border-b border-zinc-200 dark:border-zinc-900 pb-5">
           <button
             onClick={selectedTopic ? resetPractice : () => navigate('/dashboard')}
-            className="p-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white cursor-pointer"
+            className="p-2.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-550 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white">
               Topic Practice
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               {selectedTopic ? `Practicing ${selectedTopic}` : 'Select a category to practice placement questions'}
             </p>
           </div>
         </header>
 
         {error && (
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center mb-6">
-            <AlertCircle className="w-5 h-5 mx-auto mb-2 text-red-400" />
-            <p className="font-medium">{error}</p>
+          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 text-xs text-center mb-6">
+            <AlertCircle className="w-5 h-5 mx-auto mb-2 text-red-500" />
+            <p className="font-semibold">{error}</p>
             <button
               onClick={() => setSelectedTopic(null)}
               className="mt-3 text-xs bg-red-500/20 hover:bg-red-500/30 px-3 py-1.5 rounded-lg text-white transition cursor-pointer"
@@ -129,16 +126,16 @@ const Practice = () => {
               <div
                 key={idx}
                 onClick={() => startPractice(topic.name)}
-                className="bg-slate-900/40 border border-slate-900 hover:border-slate-800/80 rounded-2xl p-6 transition duration-300 group cursor-pointer hover:shadow-xl hover:shadow-indigo-950/10 flex flex-col justify-between"
+                className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-6 transition duration-200 group cursor-pointer hover:shadow-sm flex flex-col justify-between"
               >
                 <div>
-                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${topic.color} text-white mb-4 shadow`}>
+                  <div className="inline-flex p-2.5 rounded-lg bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 mb-4 shadow-sm">
                     <BookOpen className="w-4 h-4" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2 group-hover:text-indigo-400 transition">{topic.name}</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">{topic.desc}</p>
+                  <h3 className="text-lg font-bold mb-2 text-zinc-900 dark:text-white group-hover:text-indigo-650 dark:group-hover:text-indigo-400 transition">{topic.name}</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-405 leading-relaxed">{topic.desc}</p>
                 </div>
-                <div className="mt-4 text-xs font-semibold text-indigo-400 group-hover:underline">
+                <div className="mt-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 group-hover:underline">
                   Start Practice &rarr;
                 </div>
               </div>
@@ -150,21 +147,21 @@ const Practice = () => {
         {selectedTopic && !showSummary && questions.length > 0 && (
           <div className="space-y-6">
             {/* Progress tracker */}
-            <div className="flex justify-between items-center bg-slate-900/30 border border-slate-900 rounded-2xl px-5 py-3">
-              <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <div className="flex justify-between items-center bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-xl px-5 py-3">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">
                 Question {currentIdx + 1} of {questions.length}
               </span>
-              <div className="w-32 bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div className="w-32 bg-zinc-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-indigo-500 h-full transition-all duration-300"
+                  className="bg-zinc-950 dark:bg-white h-full transition-all duration-300"
                   style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
                 />
               </div>
             </div>
 
             {/* Question Card */}
-            <div className="bg-slate-900/60 border border-slate-850 rounded-3xl p-8 shadow-xl shadow-slate-950/20">
-              <h2 className="text-lg font-medium text-slate-200 leading-relaxed mb-6">
+            <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-8 shadow-sm">
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-200 leading-relaxed mb-6">
                 {questions[currentIdx].questionText}
               </h2>
 
@@ -173,18 +170,18 @@ const Practice = () => {
                   const isUserSelection = selectedAnswer === option;
                   const isCorrectAnswer = questions[currentIdx].correctAnswer.trim().toLowerCase() === option.trim().toLowerCase();
                   
-                  let buttonStyle = "border-slate-850 bg-slate-950/40 text-slate-300 hover:bg-slate-900 hover:border-slate-700";
+                  let buttonStyle = "border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-950/40 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700";
                   let Icon = null;
 
                   if (answered) {
                     if (isCorrectAnswer) {
-                      buttonStyle = "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+                      buttonStyle = "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-450";
                       Icon = CheckCircle2;
                     } else if (isUserSelection) {
-                      buttonStyle = "border-red-500/30 bg-red-500/10 text-red-400";
+                      buttonStyle = "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-450";
                       Icon = XCircle;
                     } else {
-                      buttonStyle = "border-slate-900 bg-slate-950/20 text-slate-600 opacity-60";
+                      buttonStyle = "border-zinc-200/50 dark:border-zinc-900 bg-white/50 dark:bg-zinc-950/20 text-zinc-405 dark:text-zinc-600 opacity-60";
                     }
                   }
 
@@ -194,10 +191,10 @@ const Practice = () => {
                       type="button"
                       disabled={answered}
                       onClick={() => handleAnswerClick(option)}
-                      className={`w-full text-left px-5 py-4 border rounded-2xl text-sm font-medium transition duration-200 flex justify-between items-center ${buttonStyle} ${!answered ? 'cursor-pointer' : ''}`}
+                      className={`w-full text-left px-5 py-4 border rounded-xl text-xs font-semibold transition duration-200 flex justify-between items-center ${buttonStyle} ${!answered ? 'cursor-pointer' : ''}`}
                     >
                       <span>{option}</span>
-                      {Icon && <Icon className="w-5 h-5 shrink-0 ml-4" />}
+                      {Icon && <Icon className="w-4 h-4 shrink-0 ml-4" />}
                     </button>
                   );
                 })}
@@ -205,19 +202,19 @@ const Practice = () => {
 
               {/* Immediate Feedback Explanation */}
               {answered && (
-                <div className="mt-8 border-t border-slate-900 pt-6 animate-fadeIn">
+                <div className="mt-8 border-t border-zinc-200 dark:border-zinc-900 pt-6 animate-fadeIn">
                   <div className="flex items-start space-x-3 mb-2">
-                    <AlertCircle className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-indigo-650 dark:text-indigo-400 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-200">Explanation</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                      <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-200">Explanation</h4>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-1">
                         {questions[currentIdx].explanation || "No detailed explanation provided for this question."}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={handleNext}
-                    className="w-full mt-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition cursor-pointer text-sm shadow-md"
+                    className="w-full mt-6 py-3 bg-zinc-950 dark:bg-white hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-bold rounded-xl transition cursor-pointer text-xs"
                   >
                     {currentIdx + 1 === questions.length ? 'View Summary' : 'Next Question'}
                   </button>
@@ -229,33 +226,33 @@ const Practice = () => {
 
         {/* Practice Complete Summary View */}
         {showSummary && (
-          <div className="bg-slate-900/60 border border-slate-850 rounded-3xl p-8 text-center shadow-xl shadow-slate-950/30">
-            <Award className="w-16 h-16 mx-auto text-indigo-400 mb-4 animate-bounce" />
+          <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-8 text-center shadow-sm">
+            <Award className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400 mb-4 animate-bounce" />
             <h2 className="text-2xl font-bold mb-2">Practice Complete!</h2>
-            <p className="text-slate-500 text-sm mb-6">You did a great job reviewing topic questions for {selectedTopic}.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 text-xs mb-6">You did a great job reviewing topic questions for {selectedTopic}.</p>
             
             <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8">
-              <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-2xl">
-                <p className="text-[10px] text-slate-500 font-semibold uppercase">Total Questions</p>
-                <p className="text-2xl font-bold mt-1">{questions.length}</p>
+              <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-455 font-bold uppercase">Total Questions</p>
+                <p className="text-2xl font-extrabold mt-1">{questions.length}</p>
               </div>
-              <div className="bg-slate-950/60 border border-slate-900 p-4 rounded-2xl">
-                <p className="text-[10px] text-slate-500 font-semibold uppercase">Correct Answers</p>
-                <p className="text-2xl font-bold mt-1 text-emerald-400">{correctCount}</p>
+              <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-455 font-bold uppercase">Correct Answers</p>
+                <p className="text-2xl font-extrabold mt-1 text-emerald-600 dark:text-emerald-400">{correctCount}</p>
               </div>
             </div>
 
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => startPractice(selectedTopic)}
-                className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer"
+                className="flex items-center space-x-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer hover:bg-zinc-850 dark:hover:bg-zinc-200"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-3.5 h-3.5" />
                 <span>Practice Again</span>
               </button>
               <button
                 onClick={resetPractice}
-                className="bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer"
+                className="bg-white dark:bg-transparent border border-zinc-250 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Change Topic
               </button>

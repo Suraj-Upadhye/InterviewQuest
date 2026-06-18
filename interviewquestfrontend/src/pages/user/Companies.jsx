@@ -103,41 +103,38 @@ const Companies = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-slate-400 text-sm">Fetching companies list...</p>
+      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 flex flex-col justify-center items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-zinc-750 dark:text-zinc-400 mb-4" />
+        <p className="text-zinc-500 dark:text-zinc-400 text-xs">Fetching companies list...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 relative overflow-hidden">
-      {/* Background decor */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/5 blur-[100px]" />
-
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
       <div className="max-w-4xl mx-auto z-10 relative">
+        
         {/* Header */}
-        <header className="flex items-center justify-between mb-8 border-b border-slate-900 pb-5">
+        <header className="flex items-center justify-between mb-8 border-b border-zinc-200 dark:border-zinc-900 pb-5">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl transition text-slate-400 hover:text-white cursor-pointer"
+              className="p-2.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-550 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white">
                 Companies Directory
               </h1>
-              <p className="text-xs text-slate-500">Browse tracked corporate recruiters or manage company panels</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-405">Browse tracked corporate recruiters or manage company panels</p>
             </div>
           </div>
 
           {isAdmin && (
             <button
               onClick={handleOpenCreateModal}
-              className="flex items-center space-x-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2.5 rounded-xl transition cursor-pointer shadow-md"
+              className="flex items-center space-x-1.5 text-xs bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold px-4 py-2.5 rounded-lg transition cursor-pointer hover:bg-zinc-850 dark:hover:bg-zinc-200"
             >
               <Plus className="w-4 h-4" />
               <span>Add Company</span>
@@ -146,38 +143,38 @@ const Companies = () => {
         </header>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center mb-6 flex items-center justify-center space-x-2">
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 text-xs text-center mb-6 flex items-center justify-center space-x-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {companies.length === 0 ? (
-          <div className="text-center py-16 bg-slate-900/30 border border-slate-900 border-dashed rounded-3xl text-slate-500">
-            <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-700 animate-pulse" />
-            <p className="text-sm">No companies registered yet.</p>
-            {isAdmin && <button onClick={handleOpenCreateModal} className="mt-3 text-xs text-indigo-400 hover:underline cursor-pointer">Register one now</button>}
+          <div className="text-center py-16 bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 border-dashed rounded-2xl text-zinc-550">
+            <Building2 className="w-10 h-10 mx-auto mb-3 text-zinc-400 dark:text-zinc-650" />
+            <p className="text-xs">No companies registered yet.</p>
+            {isAdmin && <button onClick={handleOpenCreateModal} className="mt-3 text-xs text-indigo-650 dark:text-indigo-400 hover:underline cursor-pointer">Register one now</button>}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {companies.map((company) => (
               <div 
                 key={company.id} 
-                className="bg-slate-900/40 border border-slate-900 hover:border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between transition relative group"
+                className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-5 flex flex-col justify-between transition duration-200 relative group"
               >
                 {/* Admin Actions */}
                 {isAdmin && (
                   <div className="absolute top-4 right-4 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleOpenEditModal(company)}
-                      className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg cursor-pointer"
+                      className="p-1.5 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-350 rounded-lg cursor-pointer transition border border-zinc-250 dark:border-zinc-700"
                       title="Edit"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(company.id)}
-                      className="p-1.5 bg-red-950/40 hover:bg-red-950/80 text-red-400 border border-red-900/30 rounded-lg cursor-pointer"
+                      className="p-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/80 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/30 rounded-lg cursor-pointer transition"
                       title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -186,15 +183,15 @@ const Companies = () => {
                 )}
 
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-center text-slate-400 mb-4 overflow-hidden">
+                  <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-zinc-400 mb-4 overflow-hidden">
                     {company.logoUrl ? (
                       <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 className="w-5 h-5" />
                     )}
                   </div>
-                  <h3 className="font-semibold text-slate-200 mb-1">{company.name}</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                  <h3 className="font-bold text-zinc-900 dark:text-zinc-200 text-sm mb-1">{company.name}</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-405 leading-relaxed line-clamp-3 font-medium">
                     {company.description || 'No corporate description available.'}
                   </p>
                 </div>
@@ -205,49 +202,49 @@ const Companies = () => {
 
         {/* MODAL DIALOG (Create/Edit Company) */}
         {modalOpen && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 relative shadow-2xl animate-scaleIn">
+          <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 relative shadow-2xl animate-scaleIn">
               <button
                 onClick={() => setModalOpen(false)}
-                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white rounded-lg transition cursor-pointer"
+                className="absolute top-4 right-4 p-2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <h2 className="text-xl font-bold mb-4 text-slate-200 flex items-center">
-                <Building2 className="w-5 h-5 text-indigo-400 mr-2" />
+              <h2 className="text-lg font-bold mb-4 text-zinc-900 dark:text-zinc-250 flex items-center">
+                <Building2 className="w-5 h-5 text-indigo-650 dark:text-indigo-400 mr-2" />
                 {editingId ? 'Edit Company' : 'Add New Company'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Company Name *</label>
+                  <label className="block text-xs font-bold text-zinc-650 dark:text-zinc-400 mb-1.5">Company Name *</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Google"
-                    className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200"
+                    className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl px-4 py-2.5 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-650 text-xs text-zinc-900 dark:text-zinc-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Logo Image URL</label>
+                  <label className="block text-xs font-bold text-zinc-650 dark:text-zinc-400 mb-1.5">Logo Image URL</label>
                   <input
                     type="text"
                     value={logoUrl}
                     onChange={(e) => setLogoUrl(e.target.value)}
                     placeholder="https://logo.link/..."
-                    className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200"
+                    className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl px-4 py-2.5 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-650 text-xs text-zinc-900 dark:text-zinc-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Description</label>
+                  <label className="block text-xs font-bold text-zinc-650 dark:text-zinc-400 mb-1.5">Description</label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Write a brief overview of the company, headquarters, industry, etc."
                     rows="3"
-                    className="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2.5 focus:outline-none focus:border-indigo-500 text-sm text-slate-200 resize-none"
+                    className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl px-4 py-2.5 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-650 text-xs text-zinc-900 dark:text-zinc-100 resize-none"
                   />
                 </div>
 
@@ -255,14 +252,14 @@ const Companies = () => {
                   <button
                     type="button"
                     onClick={() => setModalOpen(false)}
-                    className="w-1/2 py-2.5 bg-slate-950 border border-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
+                    className="w-1/2 py-2.5 bg-white dark:bg-transparent border border-zinc-250 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white text-xs font-bold rounded-xl transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-505 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center"
+                    className="w-1/2 py-2.5 bg-zinc-950 dark:bg-white hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save Details'}
                   </button>

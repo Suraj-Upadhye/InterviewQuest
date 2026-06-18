@@ -21,52 +21,55 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-[100px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/10 blur-[100px]" />
-
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
       <div className="max-w-6xl mx-auto z-10 relative">
+        
         {/* Navigation */}
-        <header className="flex justify-between items-center mb-12 border-b border-slate-900 pb-5">
+        <header className="flex justify-between items-center mb-12 border-b border-zinc-200 dark:border-zinc-900 pb-5">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              InterviewQuest
+            <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white flex items-center gap-1.5">
+              <span>🚀</span> InterviewQuest
             </h1>
-            <p className="text-xs text-slate-500">Welcome back, {user?.username} ({user?.role?.replace('ROLE_', '')})</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Welcome back, {user?.username} ({user?.role?.replace('ROLE_', '')})</p>
           </div>
           <div className="flex items-center space-x-3">
             {user?.role === 'ROLE_ADMIN' && (
               <button
                 onClick={() => navigate('/admin')}
-                className="flex items-center space-x-2 bg-rose-950/40 border border-rose-900/30 hover:bg-rose-900/30 text-rose-350 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
+                className="flex items-center space-x-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-350 px-4 py-2 rounded-xl transition cursor-pointer text-xs font-semibold"
               >
-                <ShieldAlert className="w-4 h-4" />
+                <ShieldAlert className="w-3.5 h-3.5" />
                 <span>Admin Panel</span>
               </button>
             )}
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
+              className="flex items-center space-x-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-xl transition cursor-pointer text-xs font-semibold"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
             </button>
           </div>
         </header>
 
         {/* Hero Welcome banner */}
-        <section className="bg-gradient-to-r from-slate-900 to-slate-900/40 border border-slate-800 rounded-3xl p-8 mb-10 relative overflow-hidden">
+        <section className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-905 rounded-2xl p-8 mb-10 relative overflow-hidden">
           <div className="max-w-xl">
-            <h2 className="text-3xl font-bold mb-3 text-slate-100">Unlock your placement success</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5">
+            <h2 className="text-2xl font-bold mb-3 text-zinc-950 dark:text-white">Unlock your placement success</h2>
+            <p className="text-zinc-500 dark:text-zinc-405 text-xs sm:text-sm leading-relaxed mb-6">
               Practice computer science core subjects, challenge yourself with timed tests, read reviews from seniors, and simulate AI-powered interviews.
             </p>
             <div className="flex space-x-4">
-              <button onClick={() => navigate('/mock-interview')} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition cursor-pointer">
+              <button 
+                onClick={() => navigate('/mock-interview')} 
+                className="px-5 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:bg-zinc-850 dark:hover:bg-zinc-200 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
                 Start Mock Interview
               </button>
-              <button onClick={() => navigate('/practice')} className="px-5 py-2.5 bg-slate-950/60 border border-slate-800 hover:border-slate-700 rounded-xl text-sm font-medium transition cursor-pointer">
+              <button 
+                onClick={() => navigate('/practice')} 
+                className="px-5 py-2.5 bg-white dark:bg-transparent border border-zinc-250 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-350 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
                 Practice DSA
               </button>
             </div>
@@ -77,20 +80,23 @@ const Dashboard = () => {
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {menuItems.map((item, idx) => {
             const Icon = item.icon;
+            // Map new visual settings to replace old gradient colors
             return (
               <div
                 key={idx}
                 onClick={() => navigate(item.link)}
-                className="bg-slate-900/50 backdrop-blur border border-slate-900 hover:border-slate-800 rounded-2xl p-6 transition duration-300 group cursor-pointer hover:shadow-xl hover:shadow-indigo-950/20"
+                className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-6 transition duration-200 group cursor-pointer hover:shadow-sm"
               >
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${item.color} text-white mb-4 shadow-md transition group-hover:scale-110`}>
+                <div className="inline-flex p-2.5 rounded-lg bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 mb-4 group-hover:border-zinc-400 dark:group-hover:border-zinc-650 transition">
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 group-hover:text-indigo-400 transition">
+                <h3 className="text-base font-bold mb-2 text-zinc-900 dark:text-white group-hover:text-indigo-650 dark:group-hover:text-indigo-400 transition">
                   {item.title}
                 </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  {item.desc}
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  {item.title === 'My Profile' 
+                    ? 'View details and upload/preview your Resume PDF.' 
+                    : item.desc}
                 </p>
               </div>
             );
