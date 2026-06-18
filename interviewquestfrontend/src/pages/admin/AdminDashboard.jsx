@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  LogOut, ShieldAlert, Users, Building2, BookCheck, CheckCircle, 
+  LogOut, ShieldAlert, Users, Building2, CheckCircle, 
   XCircle, Trash2, Edit3, Plus, Loader2, Filter, X, ChevronLeft, 
-  ChevronRight, ArrowLeft, BookOpen, AlertCircle, Eye, ExternalLink, HelpCircle
+  ChevronRight, ArrowLeft, BookOpen, AlertCircle, ExternalLink, HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
@@ -12,23 +12,16 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Tab State: 'experiences' | 'questions' | 'companies'
-  const [activeTab, setActiveTab] = useState('experiences');
+  // Tab State: 'questions' | 'companies'
+  const [activeTab, setActiveTab] = useState('questions');
 
   // Stats Counters
   const [companiesCount, setCompaniesCount] = useState(0);
-  const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
 
   // General States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // Experience Moderation States
-  const [pendingExperiences, setPendingExperiences] = useState([]);
-  const [expPage, setExpPage] = useState(0);
-  const [expTotalPages, setExpTotalPages] = useState(0);
-  const [selectedReview, setSelectedReview] = useState(null);
 
   // MCQ Question Bank States
   const [questions, setQuestions] = useState([]);
@@ -58,18 +51,15 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchCompaniesCount();
-    fetchPendingReviewsCount();
   }, []);
 
   useEffect(() => {
     setError('');
     setSuccess('');
-    if (activeTab === 'experiences') {
-      fetchPendingReviews();
-    } else if (activeTab === 'questions') {
+    if (activeTab === 'questions') {
       fetchQuestions();
     }
-  }, [activeTab, expPage, qPage, topicFilter, difficultyFilter]);
+  }, [activeTab, qPage, topicFilter, difficultyFilter]);
 
   const fetchCompaniesCount = async () => {
     try {
@@ -77,37 +67,6 @@ const AdminDashboard = () => {
       setCompaniesCount(response.data?.length || 0);
     } catch (err) {
       console.error('Failed to load companies count', err);
-    }
-  };
-
-  const fetchPendingReviewsCount = async () => {
-    try {
-      const response = await API.get('/api/admin/experiences', {
-        params: { status: 'PENDING', page: 0, size: 1 }
-      });
-      setPendingReviewsCount(response.data?.totalElements || 0);
-    } catch (err) {
-      console.error('Failed to load pending reviews count', err);
-    }
-  };
-
-  const fetchPendingReviews = async () => {
-    try {
-      setLoading(true);
-      const response = await API.get('/api/admin/experiences', {
-        params: {
-          status: 'PENDING',
-          page: expPage,
-          size: 5
-        }
-      });
-      setPendingExperiences(response.data?.content || []);
-      setExpTotalPages(response.data?.totalPages || 0);
-      setPendingReviewsCount(response.data?.totalElements || 0);
-    } catch (err) {
-      setError('Failed to fetch pending experiences.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -128,50 +87,6 @@ const AdminDashboard = () => {
       setError('Failed to fetch MCQ questions.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Moderation Handlers
-  const handleApprove = async (id) => {
-    try {
-      setError('');
-      setSuccess('');
-      await API.put(`/api/admin/experiences/${id}/status?status=APPROVED`);
-      setSuccess('Experience approved and published successfully!');
-      setSelectedReview(null);
-      fetchPendingReviews();
-      fetchPendingReviewsCount();
-    } catch (err) {
-      setError('Failed to approve experience.');
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      setError('');
-      setSuccess('');
-      await API.put(`/api/admin/experiences/${id}/status?status=REJECTED`);
-      setSuccess('Experience marked as rejected.');
-      setSelectedReview(null);
-      fetchPendingReviews();
-      fetchPendingReviewsCount();
-    } catch (err) {
-      setError('Failed to reject experience.');
-    }
-  };
-
-  const handleDeleteExperience = async (id) => {
-    if (!window.confirm('Are you sure you want to permanently delete this experience submission?')) return;
-    try {
-      setError('');
-      setSuccess('');
-      await API.delete(`/api/admin/experiences/${id}`);
-      setSuccess('Experience review deleted successfully!');
-      setSelectedReview(null);
-      fetchPendingReviews();
-      fetchPendingReviewsCount();
-    } catch (err) {
-      setError('Failed to delete experience.');
     }
   };
 
@@ -317,14 +232,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Overview Stats Row */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-slate-900/40 border border-slate-900 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl"><BookCheck className="w-6 h-6" /></div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Pending Reviews</p>
-              <p className="text-2xl font-bold text-slate-200 mt-0.5">{pendingReviewsCount}</p>
-            </div>
-          </div>
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
           <div className="bg-slate-900/40 border border-slate-900 p-5 rounded-2xl flex items-center space-x-4">
             <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl"><Building2 className="w-6 h-6" /></div>
             <div>
@@ -344,20 +252,6 @@ const AdminDashboard = () => {
         {/* Interactive Tab Switcher */}
         <section className="flex border-b border-slate-900 mb-8 space-x-8">
           <button
-            onClick={() => setActiveTab('experiences')}
-            className={`pb-4 text-sm font-semibold transition cursor-pointer flex items-center space-x-2 relative ${
-              activeTab === 'experiences' ? 'text-rose-400 border-b-2 border-rose-500' : 'text-slate-500 hover:text-slate-350'
-            }`}
-          >
-            <BookCheck className="w-4 h-4" />
-            <span>Moderate Placement Reviews</span>
-            {pendingReviewsCount > 0 && (
-              <span className="bg-rose-500/25 border border-rose-500/30 text-rose-350 text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1.5">
-                {pendingReviewsCount}
-              </span>
-            )}
-          </button>
-          <button
             onClick={() => setActiveTab('questions')}
             className={`pb-4 text-sm font-semibold transition cursor-pointer flex items-center space-x-2 relative ${
               activeTab === 'questions' ? 'text-orange-400 border-b-2 border-orange-500' : 'text-slate-500 hover:text-slate-350'
@@ -369,7 +263,7 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('companies')}
             className={`pb-4 text-sm font-semibold transition cursor-pointer flex items-center space-x-2 relative ${
-              activeTab === 'companies' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-350'
+              activeTab === 'companies' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-355'
             }`}
           >
             <Building2 className="w-4 h-4" />
@@ -381,101 +275,8 @@ const AdminDashboard = () => {
         <section className="min-h-[300px]">
           {loading && (
             <div className="flex flex-col justify-center items-center py-16 text-slate-500">
-              <Loader2 className="w-10 h-10 animate-spin text-rose-500 mb-4" />
+              <Loader2 className="w-10 h-10 animate-spin text-orange-500 mb-4" />
               <p className="text-xs">Processing database queries...</p>
-            </div>
-          )}
-
-          {/* TAB 1: PENDING EXPERIENCES MODERATION */}
-          {!loading && activeTab === 'experiences' && (
-            <div className="space-y-4">
-              {pendingExperiences.length === 0 ? (
-                <div className="text-center py-16 bg-slate-900/10 border border-slate-900 border-dashed rounded-3xl text-slate-500">
-                  <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-500/20" />
-                  <p className="text-sm font-medium text-slate-400">All caught up!</p>
-                  <p className="text-xs text-slate-500 mt-1">There are no pending placement reviews to moderate.</p>
-                </div>
-              ) : (
-                pendingExperiences.map((exp) => (
-                  <div
-                    key={exp.id}
-                    className="bg-slate-900/30 border border-slate-900 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-800 transition"
-                  >
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-md font-semibold text-slate-200">{exp.company?.name}</span>
-                        <span className="text-slate-700">&bull;</span>
-                        <span className="text-xs text-slate-400 font-medium">{exp.role}</span>
-                        <span className="text-slate-700">&bull;</span>
-                        <span className="text-xs text-slate-500">{exp.yearOfInterview}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                          exp.isSelected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {exp.isSelected ? 'Selected' : 'Rejected'}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {exp.stages?.length || 0} stages details added
-                        </span>
-                        <span className="text-xs text-slate-600">
-                          Submitted by: {exp.user?.username || 'Candidate'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
-                      <button
-                        onClick={() => setSelectedReview(exp)}
-                        className="flex items-center space-x-1 px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Inspect</span>
-                      </button>
-                      <button
-                        onClick={() => handleApprove(exp.id)}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition cursor-pointer shadow-md"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(exp.id)}
-                        className="bg-red-700 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition cursor-pointer border border-red-900/20"
-                      >
-                        Reject
-                      </button>
-                      <button
-                        onClick={() => handleDeleteExperience(exp.id)}
-                        className="p-2 bg-slate-950 border border-slate-900 hover:bg-red-950/40 text-slate-500 hover:text-red-400 rounded-xl transition cursor-pointer"
-                        title="Delete Permanently"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-
-              {/* Moderation Pagination */}
-              {expTotalPages > 1 && (
-                <footer className="flex justify-between items-center py-4 border-t border-slate-900 mt-4">
-                  <button
-                    disabled={expPage === 0}
-                    onClick={() => setExpPage(expPage - 1)}
-                    className="p-2 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-xs text-slate-500">Page {expPage + 1} of {expTotalPages}</span>
-                  <button
-                    disabled={expPage + 1 >= expTotalPages}
-                    onClick={() => setExpPage(expPage + 1)}
-                    className="p-2 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </footer>
-              )}
             </div>
           )}
 
@@ -636,82 +437,7 @@ const AdminDashboard = () => {
           )}
         </section>
 
-        {/* MODAL WINDOW 1: INSPECT PENDING EXPERIENCES DETAIL */}
-        {selectedReview && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] animate-scaleIn">
-              <button
-                onClick={() => setSelectedReview(null)}
-                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white rounded-lg transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="border-b border-slate-850 pb-4 mb-4 shrink-0 pr-8">
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg font-bold text-slate-100">{selectedReview.company?.name}</span>
-                  <span className="text-slate-600">&bull;</span>
-                  <span className="text-sm text-slate-400 font-medium">{selectedReview.role}</span>
-                  <span className="text-slate-600">&bull;</span>
-                  <span className="text-sm text-slate-500">{selectedReview.yearOfInterview}</span>
-                </div>
-                <div className="flex flex-wrap gap-2 items-center mt-2 text-xs">
-                  <span className={`px-2 py-0.5 rounded-full font-semibold ${
-                    selectedReview.isSelected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                  }`}>
-                    {selectedReview.isSelected ? 'Outcome: Selected' : 'Outcome: Rejected'}
-                  </span>
-                  <span className="text-slate-500">
-                    Submitted by {selectedReview.user?.username || 'Unknown candidate'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Stages review scroll */}
-              <div className="flex-grow overflow-y-auto space-y-6 pr-2 mb-6">
-                {selectedReview.stages && selectedReview.stages.length > 0 ? (
-                  selectedReview.stages.map((stage, idx) => (
-                    <div key={idx} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 space-y-3">
-                      <h4 className="font-semibold text-slate-200 text-sm flex items-center">
-                        <span className="w-5 h-5 rounded bg-rose-500/10 text-rose-400 text-xs font-bold flex items-center justify-center border border-rose-500/20 mr-2 shrink-0">
-                          {stage.stageNumber}
-                        </span>
-                        {stage.stageName}
-                      </h4>
-                      <p className="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">
-                        {stage.content}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-slate-500 text-xs italic">No detailed rounds information specified.</p>
-                )}
-              </div>
-
-              {/* Action options */}
-              <div className="flex space-x-3 pt-4 border-t border-slate-800 shrink-0">
-                <button
-                  onClick={() => setSelectedReview(null)}
-                  className="w-1/3 py-2.5 bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold rounded-xl transition cursor-pointer"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => handleReject(selectedReview.id)}
-                  className="w-1/3 py-2.5 bg-red-700 hover:bg-red-600 text-white text-xs font-semibold rounded-xl transition cursor-pointer"
-                >
-                  Reject Review
-                </button>
-                <button
-                  onClick={() => handleApprove(selectedReview.id)}
-                  className="w-1/3 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md"
-                >
-                  Approve & Publish
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* MODAL WINDOW 1: INSPECT PENDING EXPERIENCES DETAIL - REMOVED */}
 
         {/* MODAL WINDOW 2: CREATE / EDIT MCQ QUESTION */}
         {questionModalOpen && (

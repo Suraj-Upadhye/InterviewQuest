@@ -5,7 +5,6 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/user/Dashboard';
 import Profile from './pages/user/Profile';
-import Experiences from './pages/user/Experiences';
 import Practice from './pages/user/Practice';
 import Assessments from './pages/user/Assessments';
 import MockInterview from './pages/user/MockInterview';
@@ -59,7 +58,6 @@ function App() {
           {/* Secure User Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="/experiences" element={<PrivateRoute><Experiences /></PrivateRoute>} />
           <Route path="/companies" element={<PrivateRoute><Companies /></PrivateRoute>} />
           <Route path="/practice" element={<PrivateRoute><Practice /></PrivateRoute>} />
           <Route path="/assessments" element={<PrivateRoute><Assessments /></PrivateRoute>} />

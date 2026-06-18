@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, BookOpen, Compass, Code, Brain, User as UserIcon, Calendar, Building2, ShieldAlert } from 'lucide-react';
+import { LogOut, BookOpen, Code, Brain, User as UserIcon, Calendar, Building2, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -16,7 +16,6 @@ const Dashboard = () => {
     { title: 'Topic Practice', icon: Code, desc: 'Practice topic-wise MCQ questions on core computer subjects.', link: '/practice', color: 'from-blue-500 to-cyan-500' },
     { title: 'Skill Assessments', icon: BookOpen, desc: 'Take timed tests to assess your knowledge and track your stats.', link: '/assessments', color: 'from-emerald-500 to-teal-500' },
     { title: 'AI Mock Interviews', icon: Brain, desc: 'Conduct simulated HR & technical interviews powered by Groq AI.', link: '/mock-interview', color: 'from-purple-500 to-indigo-500' },
-    { title: 'Placement Experiences', icon: Compass, desc: 'Browse and search structured, stage-wise reviews from seniors.', link: '/experiences', color: 'from-amber-500 to-orange-500' },
     { title: 'Companies Directory', icon: Building2, desc: 'Browse and follow tracked recruiters, or manage corporate panels.', link: '/companies', color: 'from-sky-500 to-indigo-500' },
     { title: 'My Profile', icon: UserIcon, desc: 'Edit your education, projects, skills, and coding profiles.', link: '/profile', color: 'from-pink-500 to-rose-500' }
   ];
