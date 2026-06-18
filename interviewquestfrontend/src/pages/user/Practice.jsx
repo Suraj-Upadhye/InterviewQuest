@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
 import { ArrowLeft, BookOpen, Code, Award, CheckCircle2, XCircle, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 
 const Practice = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const topics = [
     { name: 'DSA', desc: 'Data Structures & Algorithms', color: 'from-blue-500 to-indigo-600' },
@@ -91,7 +93,7 @@ const Practice = () => {
         {/* Header */}
         <header className="flex items-center space-x-4 mb-10 border-b border-zinc-200 dark:border-zinc-900 pb-5">
           <button
-            onClick={selectedTopic ? resetPractice : () => navigate('/dashboard')}
+            onClick={selectedTopic ? resetPractice : () => navigate(user ? '/dashboard' : '/')}
             className="p-2.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-550 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />

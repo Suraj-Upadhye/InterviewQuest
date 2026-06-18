@@ -102,7 +102,7 @@ const LandingPage = () => {
       const el = document.getElementById(link.substring(1));
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else {
-      navigate(user ? link : '/login');
+      navigate(link);
     }
   };
 
@@ -359,7 +359,7 @@ const LandingPage = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate(user ? subj.link : '/login')}
+                  onClick={() => navigate(subj.link)}
                   className="inline-flex items-center text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white cursor-pointer group-hover:translate-x-0.5 transition-transform"
                 >
                   <span>Launch Study</span>

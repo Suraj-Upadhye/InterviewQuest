@@ -59,7 +59,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/companies" element={<PrivateRoute><Companies /></PrivateRoute>} />
-          <Route path="/practice" element={<PrivateRoute><Practice /></PrivateRoute>} />
+          <Route path="/practice" element={<Practice />} />
           <Route path="/assessments" element={<PrivateRoute><Assessments /></PrivateRoute>} />
           <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
 
