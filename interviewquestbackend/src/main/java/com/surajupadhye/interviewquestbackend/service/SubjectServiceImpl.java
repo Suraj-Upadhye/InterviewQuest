@@ -1,0 +1,103 @@
+package com.surajupadhye.interviewquestbackend.service;
+
+import com.surajupadhye.interviewquestbackend.entity.Subject;
+import com.surajupadhye.interviewquestbackend.entity.SyllabusTopic;
+import com.surajupadhye.interviewquestbackend.exception.ResourceNotFoundException;
+import com.surajupadhye.interviewquestbackend.repository.SubjectRepository;
+import com.surajupadhye.interviewquestbackend.repository.SyllabusTopicRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+
+@Service
+@Transactional
+public class SubjectServiceImpl implements SubjectService {
+
+    @Autowired
+    private SubjectRepository subjectRepository;
+
+    @Autowired
+    private SyllabusTopicRepository syllabusTopicRepository;
+
+    @Override
+    public List<Subject> getAllSubjects() {
+        return subjectRepository.findAll();
+    }
+
+    @Override
+    public List<Subject> getSubjectsForLandingPage() {
+        return subjectRepository.findByShowOnLandingPageTrue();
+    }
+
+    @Override
+    public Subject getSubjectById(Long id) {
+        return subjectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found with id " + id));
+    }
+
+    @Override
+    public Subject getSubjectBySlug(String slug) {
+        return subjectRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found with slug " + slug));
+    }
+
+    @Override
+    public Subject createSubject(Subject subject) {
+        return subjectRepository.save(subject);
+    }
+
+    @Override
+    public Subject updateSubject(Long id, Subject subjectDetails) {
+        Subject subject = getSubjectById(id);
+        subject.setTitle(subjectDetails.getTitle());
+        subject.setCode(subjectDetails.getCode());
+        subject.setSlug(subjectDetails.getSlug());
+        subject.setDescription(subjectDetails.getDescription());
+        subject.setIconName(subjectDetails.getIconName());
+        subject.setShowOnLandingPage(subjectDetails.isShowOnLandingPage());
+        return subjectRepository.save(subject);
+    }
+
+    @Override
+    public void deleteSubject(Long id) {
+        Subject subject = getSubjectById(id);
+        subjectRepository.delete(subject);
+    }
+
+    @Override
+    public List<SyllabusTopic> getTopicsBySubjectId(Long subjectId) {
+        return syllabusTopicRepository.findBySubjectIdOrderBySortOrderAsc(subjectId);
+    }
+
+    @Override
+    public SyllabusTopic getTopicBySubjectAndTopicSlug(String subjectSlug, String topicSlug) {
+        return syllabusTopicRepository.findBySubjectSlugAndSlug(subjectSlug, topicSlug)
+                .orElseThrow(() -> new ResourceNotFoundException("Syllabus topic not found: " + subjectSlug + "/" + topicSlug));
+    }
+
+    @Override
+    public SyllabusTopic createTopic(Long subjectId, SyllabusTopic topic) {
+        Subject subject = getSubjectById(subjectId);
+        topic.setSubject(subject);
+        return syllabusTopicRepository.save(topic);
+    }
+
+    @Override
+    public SyllabusTopic updateTopic(Long id, SyllabusTopic topicDetails) {
+        SyllabusTopic topic = syllabusTopicRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Syllabus topic not found with id " + id));
+        topic.setTitle(topicDetails.getTitle());
+        topic.setSlug(topicDetails.getSlug());
+        topic.setContent(topicDetails.getContent());
+        topic.setSortOrder(topicDetails.getSortOrder());
+        return syllabusTopicRepository.save(topic);
+    }
+
+    @Override
+    public void deleteTopic(Long id) {
+        SyllabusTopic topic = syllabusTopicRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Syllabus topic not found with id " + id));
+        syllabusTopicRepository.delete(topic);
+    }
+}

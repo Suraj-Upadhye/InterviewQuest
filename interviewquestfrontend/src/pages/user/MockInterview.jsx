@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../../services/api';
 import { 
   ArrowLeft, Brain, Send, User as UserIcon, Loader2, Sparkles, 
@@ -9,6 +9,7 @@ import {
 
 const MockInterview = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const messagesEndRef = useRef(null);
 
   const [sessions, setSessions] = useState([]);
@@ -18,6 +19,14 @@ const MockInterview = () => {
   // Config setup states
   const [companyName, setCompanyName] = useState('');
   const [topicOrSkills, setTopicOrSkills] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const topicParam = params.get('topic');
+    if (topicParam) {
+      setTopicOrSkills(topicParam);
+    }
+  }, [location.search]);
   const [interviewType, setInterviewType] = useState('TECHNICAL');
   const [userApiKey, setUserApiKey] = useState('');
 

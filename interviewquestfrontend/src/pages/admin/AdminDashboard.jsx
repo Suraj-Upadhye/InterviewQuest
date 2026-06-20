@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  LogOut, ShieldAlert, Users, Building2, CheckCircle, 
-  XCircle, Trash2, Edit3, Plus, Loader2, Filter, X, ChevronLeft, 
-  ChevronRight, ArrowLeft, BookOpen, AlertCircle, ExternalLink, HelpCircle
+  LogOut, ShieldAlert, CheckCircle, 
+  Trash2, Edit3, Plus, Loader2, Filter, X, ChevronLeft, 
+  ChevronRight, ArrowLeft, BookOpen, AlertCircle, HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
@@ -11,12 +11,6 @@ import API from '../../services/api';
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-  // Tab State: 'questions' | 'companies'
-  const [activeTab, setActiveTab] = useState('questions');
-
-  // Stats Counters
-  const [companiesCount, setCompaniesCount] = useState(0);
 
   // General States
   const [loading, setLoading] = useState(false);
@@ -50,25 +44,10 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    fetchCompaniesCount();
-  }, []);
-
-  useEffect(() => {
     setError('');
     setSuccess('');
-    if (activeTab === 'questions') {
-      fetchQuestions();
-    }
-  }, [activeTab, qPage, topicFilter, difficultyFilter]);
-
-  const fetchCompaniesCount = async () => {
-    try {
-      const response = await API.get('/api/public/companies');
-      setCompaniesCount(response.data?.length || 0);
-    } catch (err) {
-      console.error('Failed to load companies count', err);
-    }
-  };
+    fetchQuestions();
+  }, [qPage, topicFilter, difficultyFilter]);
 
   const fetchQuestions = async () => {
     try {
@@ -210,7 +189,7 @@ const AdminDashboard = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
+            className="flex items-center space-x-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-350 hover:text-white px-4 py-2 rounded-xl transition cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -225,53 +204,12 @@ const AdminDashboard = () => {
           </div>
         )}
         {success && (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm mb-6 flex items-center space-x-2">
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-450 text-sm mb-6 flex items-center space-x-2">
             <CheckCircle className="w-4 h-4 shrink-0" />
             <span>{success}</span>
           </div>
         )}
 
-        {/* Overview Stats Row */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
-          <div className="bg-slate-900/40 border border-slate-900 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl"><Building2 className="w-6 h-6" /></div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Registered Companies</p>
-              <p className="text-2xl font-bold text-slate-200 mt-0.5">{companiesCount}</p>
-            </div>
-          </div>
-          <div className="bg-slate-900/40 border border-slate-900 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl"><Users className="w-6 h-6" /></div>
-            <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Access Privilege</p>
-              <p className="text-md font-bold text-indigo-400 mt-1">Super User (Admin)</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Interactive Tab Switcher */}
-        <section className="flex border-b border-slate-900 mb-8 space-x-8">
-          <button
-            onClick={() => setActiveTab('questions')}
-            className={`pb-4 text-sm font-semibold transition cursor-pointer flex items-center space-x-2 relative ${
-              activeTab === 'questions' ? 'text-orange-400 border-b-2 border-orange-500' : 'text-slate-500 hover:text-slate-350'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>MCQ Question Bank</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('companies')}
-            className={`pb-4 text-sm font-semibold transition cursor-pointer flex items-center space-x-2 relative ${
-              activeTab === 'companies' ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-355'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>Manage Companies</span>
-          </button>
-        </section>
-
-        {/* TAB CONTENTS */}
         <section className="min-h-[300px]">
           {loading && (
             <div className="flex flex-col justify-center items-center py-16 text-slate-500">
@@ -280,15 +218,14 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* TAB 2: MCQ QUESTION BANK MANAGEMENT */}
-          {!loading && activeTab === 'questions' && (
-            <div className="space-y-6">
+          {!loading && (
+            <div className="space-y-6 animate-fadeIn">
               {/* Toolbar & Filters */}
               <div className="flex flex-col sm:flex-row justify-between gap-4 bg-slate-900/20 border border-slate-900 p-4 rounded-2xl">
                 <div className="flex flex-wrap gap-3 items-center">
                   <div className="flex items-center space-x-2 text-xs text-slate-400 uppercase tracking-wider font-semibold">
                     <Filter className="w-4 h-4 text-orange-400" />
-                    <span>Filter:</span>
+                    <span>Filter MCQ Bank:</span>
                   </div>
                   <select
                     value={topicFilter}
@@ -363,7 +300,7 @@ const AdminDashboard = () => {
                             </button>
                             <button
                               onClick={() => handleDeleteQuestion(q.id)}
-                              className="p-1.5 bg-red-950/40 hover:bg-red-950/80 text-red-400 border border-red-900/30 rounded-lg cursor-pointer"
+                              className="p-1.5 bg-red-955/40 hover:bg-red-955/85 text-red-400 border border-red-900/30 rounded-lg cursor-pointer"
                               title="Delete Question"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -408,38 +345,9 @@ const AdminDashboard = () => {
               )}
             </div>
           )}
-
-          {/* TAB 3: COMPANIES DIRECTORY LINK */}
-          {!loading && activeTab === 'companies' && (
-            <div className="bg-slate-900/20 border border-slate-900 rounded-3xl p-8 max-w-xl mx-auto text-center">
-              <Building2 className="w-14 h-14 mx-auto text-indigo-400 mb-4 animate-pulse" />
-              <h3 className="text-lg font-bold mb-2">Company Registry Panel</h3>
-              <p className="text-slate-500 text-xs leading-relaxed mb-6 max-w-md mx-auto">
-                Company additions, deletions, descriptions, and recruitment logos are managed directly inside the central Companies Directory module.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button
-                  onClick={() => navigate('/companies')}
-                  className="flex items-center justify-center space-x-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-505 text-white font-medium rounded-xl transition cursor-pointer text-xs shadow-md"
-                >
-                  <span>Open Companies Directory</span>
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => navigate('/companies?add=true')}
-                  className="flex items-center justify-center space-x-1 px-5 py-3 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white font-medium rounded-xl transition cursor-pointer text-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Register a Recruiter</span>
-                </button>
-              </div>
-            </div>
-          )}
         </section>
 
-        {/* MODAL WINDOW 1: INSPECT PENDING EXPERIENCES DETAIL - REMOVED */}
-
-        {/* MODAL WINDOW 2: CREATE / EDIT MCQ QUESTION */}
+        {/* MODAL WINDOW: CREATE / EDIT MCQ QUESTION */}
         {questionModalOpen && (
           <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] animate-scaleIn">
@@ -535,7 +443,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Form Action buttons */}
-                <div className="flex space-x-3 pt-3 border-t border-slate-850 shrink-0">
+                <div className="flex space-x-3 pt-3 border-t border-slate-855 shrink-0">
                   <button
                     type="button"
                     onClick={() => setQuestionModalOpen(false)}

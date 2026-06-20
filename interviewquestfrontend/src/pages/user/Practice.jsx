@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
 import { ArrowLeft, BookOpen, Code, Award, CheckCircle2, XCircle, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 
 const Practice = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const topics = [
@@ -28,6 +29,17 @@ const Practice = () => {
   const [answered, setAnswered] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const topicParam = params.get('topic');
+    if (topicParam) {
+      const matchedTopic = topics.find(t => t.name.toUpperCase() === topicParam.toUpperCase());
+      if (matchedTopic) {
+        startPractice(matchedTopic.name);
+      }
+    }
+  }, [location.search]);
 
   const startPractice = async (topicName) => {
     try {
@@ -75,6 +87,7 @@ const Practice = () => {
     setSelectedTopic(null);
     setQuestions([]);
     setShowSummary(false);
+    navigate('/practice');
   };
 
   if (loading) {

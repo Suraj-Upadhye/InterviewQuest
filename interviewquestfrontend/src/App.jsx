@@ -11,6 +11,7 @@ import MockInterview from './pages/user/MockInterview';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Companies from './pages/user/Companies';
 import LandingPage from './pages/LandingPage';
+import Resources from './pages/user/Resources';
 
 // Route Guard for authenticated candidates
 const PrivateRoute = ({ children }) => {
@@ -54,6 +55,8 @@ function App() {
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/resources/:subjectSlug/:topicSlug" element={<Resources />} />
+          <Route path="/resources/:subjectSlug" element={<Resources />} />
 
           {/* Secure User Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
