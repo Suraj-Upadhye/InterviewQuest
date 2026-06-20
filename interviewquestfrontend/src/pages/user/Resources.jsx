@@ -24,7 +24,7 @@ const getSubjectColor = (slug) => {
   const colors = {
     "operating-systems": "text-pink-500 dark:text-pink-400",
     "database-management-systems": "text-purple-500 dark:text-purple-400",
-    "computer-networks": "text-emerald-500 dark:text-emerald-450",
+    "computer-networks": "text-emerald-500 dark:text-emerald-400",
     "object-oriented-programming": "text-amber-500 dark:text-amber-400",
     "data-structures-and-algorithms": "text-blue-500 dark:text-blue-400"
   };
@@ -662,10 +662,10 @@ const Resources = () => {
               className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-zinc-400 hover:border-zinc-350 dark:hover:border-zinc-700 transition cursor-pointer"
             >
               <div className="flex items-center space-x-2 text-xs">
-                <Search className="w-3.5 h-3.5 text-zinc-450" />
+                <Search className="w-3.5 h-3.5 text-zinc-400" />
                 <span>Search...</span>
               </div>
-              <kbd className="bg-zinc-200 dark:bg-zinc-800 px-1 py-0.5 rounded text-[8px] font-sans font-extrabold text-zinc-450">Ctrl K</kbd>
+              <kbd className="bg-zinc-200 dark:bg-zinc-800 px-1 py-0.5 rounded text-[8px] font-sans font-extrabold text-zinc-400">Ctrl K</kbd>
             </button>
 
             {/* Subject Accordions */}
@@ -673,7 +673,7 @@ const Resources = () => {
               {isAdmin && (
                 <button
                   onClick={handleOpenAddSubject}
-                  className="w-full flex items-center justify-center space-x-1.5 py-2.5 bg-indigo-650 hover:bg-indigo-600 text-white font-bold text-[10px] rounded-lg transition shadow cursor-pointer border-none mb-3"
+                  className="w-full flex items-center justify-center space-x-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] rounded-lg transition shadow cursor-pointer border-none mb-3"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Subject Category</span>
@@ -750,7 +750,7 @@ const Resources = () => {
                                   flex-1 text-left px-3 py-2 rounded-md text-[11px] font-semibold transition-all duration-150 cursor-pointer truncate
                                   ${isTopicSelected && isActiveSubject
                                     ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 shadow-sm'
-                                    : 'text-zinc-550 dark:text-zinc-450 hover:text-zinc-900 dark:hover:text-zinc-200'}
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}
                                 `}
                               >
                                 {t.title}
@@ -795,7 +795,7 @@ const Resources = () => {
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-650 font-bold tracking-widest uppercase">v1.1.0</span>
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-600 font-bold tracking-widest uppercase">v1.1.0</span>
           </div>
         </aside>
 
@@ -805,13 +805,13 @@ const Resources = () => {
           {/* Subject indicator & content details */}
           {loadingTopic || !activeTopicData ? (
             <div className="animate-pulse space-y-6 pt-8">
-              <div className="h-4 w-1/4 bg-zinc-200 dark:bg-zinc-850 rounded" />
-              <div className="h-10 w-3/4 bg-zinc-200 dark:bg-zinc-850 rounded mt-3" />
-              <div className="h-20 w-full bg-zinc-100 dark:bg-zinc-900 rounded-xl mt-6 border border-zinc-250 dark:border-zinc-850" />
+              <div className="h-4 w-1/4 bg-zinc-200 dark:bg-zinc-800 rounded" />
+              <div className="h-10 w-3/4 bg-zinc-200 dark:bg-zinc-800 rounded mt-3" />
+              <div className="h-20 w-full bg-zinc-100 dark:bg-zinc-900 rounded-xl mt-6 border border-zinc-200 dark:border-zinc-800" />
               <div className="space-y-3 pt-6">
-                <div className="h-4 w-full bg-zinc-200 dark:bg-zinc-850 rounded" />
-                <div className="h-4 w-full bg-zinc-200 dark:bg-zinc-850 rounded" />
-                <div className="h-4 w-5/6 bg-zinc-200 dark:bg-zinc-850 rounded" />
+                <div className="h-4 w-full bg-zinc-200 dark:bg-zinc-800 rounded" />
+                <div className="h-4 w-full bg-zinc-200 dark:bg-zinc-800 rounded" />
+                <div className="h-4 w-5/6 bg-zinc-200 dark:bg-zinc-800 rounded" />
               </div>
             </div>
           ) : (
@@ -824,7 +824,7 @@ const Resources = () => {
                 {isAdmin && (
                   <button
                     onClick={() => handleOpenEditTopic(activeTopicData, currentSubject)}
-                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-850 text-zinc-750 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>Edit Topic Content</span>
@@ -852,7 +852,7 @@ const Resources = () => {
                 {prevTopic ? (
                   <button
                     onClick={() => handleTopicClick(subjectSlug, prevTopic.slug)}
-                    className="flex items-center space-x-2.5 text-left bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 px-5 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer text-zinc-750 dark:text-zinc-300"
+                    className="flex items-center space-x-2.5 text-left bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-5 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer text-zinc-700 dark:text-zinc-300"
                   >
                     <ArrowLeft className="w-3.5 h-3.5 text-zinc-400" />
                     <div>
@@ -867,7 +867,7 @@ const Resources = () => {
                 {nextTopic ? (
                   <button
                     onClick={() => handleTopicClick(subjectSlug, nextTopic.slug)}
-                    className="flex items-center space-x-2.5 text-right bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 px-5 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer text-zinc-750 dark:text-zinc-300"
+                    className="flex items-center space-x-2.5 text-right bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-5 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer text-zinc-700 dark:text-zinc-300"
                   >
                     <div>
                       <p className="text-[9px] uppercase tracking-wider text-zinc-400">Next Up</p>
@@ -878,7 +878,7 @@ const Resources = () => {
                 ) : (
                   <button
                     onClick={handleLaunchPractice}
-                    className="flex items-center space-x-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 hover:bg-zinc-850 dark:hover:bg-zinc-200 px-6 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer"
+                    className="flex items-center space-x-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-900 dark:hover:bg-zinc-200 px-6 py-3.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer"
                   >
                     <span>Complete Subject & Practice</span>
                     <Award className="w-4 h-4" />
@@ -894,7 +894,7 @@ const Resources = () => {
           <div className="space-y-6 sticky top-16">
 
             {/* Header outlines label */}
-            <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-550 border-b border-zinc-100 dark:border-zinc-900/60 pb-3">
+            <div className="flex items-center space-x-2 text-zinc-400 dark:text-zinc-500 border-b border-zinc-100 dark:border-zinc-900/60 pb-3">
               <List className="w-4 h-4" />
               <span className="text-[10px] font-black uppercase tracking-wider">On this page</span>
             </div>
@@ -913,7 +913,7 @@ const Resources = () => {
                         ${heading.level === 3 ? 'pl-3 border-l border-zinc-100 dark:border-zinc-900/60' : ''}
                         ${isActive
                           ? 'text-purple-600 dark:text-purple-400 font-extrabold'
-                          : 'text-zinc-450 dark:text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-200 font-semibold'}
+                          : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-200 font-semibold'}
                       `}
                     >
                       {heading.text}
@@ -922,7 +922,7 @@ const Resources = () => {
                 })}
               </nav>
             ) : (
-              <p className="text-xs text-zinc-400 dark:text-zinc-650 italic font-semibold">Overview information only</p>
+              <p className="text-xs text-zinc-400 dark:text-zinc-600 italic font-semibold">Overview information only</p>
             )}
 
             {/* Quick action card panel */}
@@ -967,7 +967,7 @@ const Resources = () => {
             </button>
 
             <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <Layers className="w-5 h-5 text-indigo-650 dark:text-indigo-400 mr-2" />
+              <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
               {editingSubject ? 'Edit Subject Category' : 'Create New Subject'}
             </h2>
 
@@ -1032,7 +1032,7 @@ const Resources = () => {
                     <select
                       value={subjectIconName}
                       onChange={(e) => setSubjectIconName(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-650 dark:text-zinc-300"
+                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-600 dark:text-zinc-300"
                     >
                       {iconOptions.map(icon => <option key={icon} value={icon}>{icon}</option>)}
                     </select>
@@ -1043,9 +1043,9 @@ const Resources = () => {
                         type="checkbox"
                         checked={subjectShowOnLanding}
                         onChange={(e) => setSubjectShowOnLanding(e.target.checked)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-650 bg-zinc-100 dark:bg-zinc-955 focus:ring-indigo-500 cursor-pointer"
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-600 bg-zinc-100 dark:bg-zinc-905 focus:ring-indigo-500 cursor-pointer"
                       />
-                      <span className="text-xs text-zinc-550 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
                     </label>
                   </div>
                 </div>
@@ -1076,7 +1076,7 @@ const Resources = () => {
 
       {/* SYLLABUS TOPIC FORM MODAL */}
       {topicModalOpen && (
-        <div className="fixed inset-0 bg-zinc-955/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[92vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
             <button
               onClick={() => setTopicModalOpen(false)}
@@ -1086,9 +1086,9 @@ const Resources = () => {
             </button>
 
             <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <BookOpen className="w-5 h-5 text-indigo-650 dark:text-indigo-400 mr-2" />
+              <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
               {editingTopic ? 'Edit Syllabus Topic' : 'Add New Syllabus Topic'}
-              <span className="ml-2 text-xs font-bold text-zinc-450">({activeSubjectForTopic?.title})</span>
+              <span className="ml-2 text-xs font-bold text-zinc-400">({activeSubjectForTopic?.title})</span>
             </h2>
 
             <form onSubmit={handleSaveTopic} className="flex-grow flex flex-col overflow-hidden">
@@ -1103,7 +1103,7 @@ const Resources = () => {
                       value={topicTitle}
                       onChange={(e) => handleTopicTitleChange(e.target.value)}
                       placeholder="e.g. Introduction to Thread Pools"
-                      className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
                       required
                     />
                   </div>
@@ -1113,7 +1113,7 @@ const Resources = () => {
                       type="number"
                       value={topicSortOrder}
                       onChange={(e) => setTopicSortOrder(parseInt(e.target.value) || 0)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
+                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
                       required
                     />
                   </div>
@@ -1127,7 +1127,7 @@ const Resources = () => {
                     value={topicSlugState}
                     onChange={(e) => setTopicSlugState(e.target.value)}
                     placeholder="e.g. intro-to-thread-pools"
-                    className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
+                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
                     required
                   />
                 </div>
@@ -1139,7 +1139,7 @@ const Resources = () => {
                     value={topicContent}
                     onChange={(e) => setTopicContent(e.target.value)}
                     placeholder="Write detailed computer science study concepts here using Markdown... Supports: #, ##, ###, *, - lists, ```code blocks```, and diagrams [DIAGRAM: os-arch]"
-                    className="w-full flex-grow bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono resize-none leading-relaxed"
+                    className="w-full flex-grow bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono resize-none leading-relaxed"
                     required
                   />
                 </div>
@@ -1151,7 +1151,7 @@ const Resources = () => {
                 <button
                   type="button"
                   onClick={() => setTopicModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-650 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
+                  className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
                 >
                   Cancel
                 </button>

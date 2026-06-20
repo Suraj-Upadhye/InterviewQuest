@@ -446,7 +446,7 @@ const LandingPage = () => {
           {isAdmin && (
             <button
               onClick={handleOpenAddSubject}
-              className="mt-6 inline-flex items-center space-x-1 bg-indigo-650 hover:bg-indigo-600 text-white font-bold text-xs px-4 py-2.5 rounded-full transition shadow cursor-pointer border-none"
+              className="mt-6 inline-flex items-center space-x-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-full transition shadow cursor-pointer border-none"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Subject Category</span>
@@ -661,7 +661,7 @@ const LandingPage = () => {
             </button>
 
             <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <Layers className="w-5 h-5 text-indigo-650 dark:text-indigo-400 mr-2" />
+              <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
               {editingSubject ? 'Edit Subject Category' : 'Create New Subject'}
             </h2>
 
@@ -737,9 +737,9 @@ const LandingPage = () => {
                         type="checkbox"
                         checked={subjectShowOnLanding}
                         onChange={(e) => setSubjectShowOnLanding(e.target.checked)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-650 bg-zinc-100 dark:bg-zinc-955 focus:ring-indigo-500 cursor-pointer"
+                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-600 bg-zinc-100 dark:bg-zinc-900 focus:ring-indigo-500 cursor-pointer"
                       />
-                      <span className="text-xs text-zinc-550 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
                     </label>
                   </div>
                 </div>

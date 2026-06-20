@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import API from '../../services/api';
-import { 
-  ArrowLeft, Timer, BookOpen, Calendar, Award, CheckCircle2, 
-  XCircle, AlertCircle, Loader2, PlayCircle, History, RefreshCw 
+import {
+  ArrowLeft, Timer, BookOpen, Calendar, Award, CheckCircle2,
+  XCircle, AlertCircle, Loader2, PlayCircle, History, RefreshCw
 } from 'lucide-react';
 
 const Assessments = () => {
@@ -75,7 +75,7 @@ const Assessments = () => {
       setError('');
       setLoading(true);
       setSelectedTopic(topicName);
-      
+
       const response = await API.get(`/api/assessments/start?topic=${topicName}&limit=10`);
       setQuestions(response.data || []);
       setAnswers({});
@@ -168,7 +168,7 @@ const Assessments = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
       <div className="max-w-3xl mx-auto z-10 relative">
-        
+
         {/* Header */}
         <header className="flex items-center justify-between mb-8 border-b border-zinc-200 dark:border-zinc-900 pb-5">
           <div className="flex items-center space-x-4">
@@ -189,11 +189,10 @@ const Assessments = () => {
           </div>
 
           {examActive && (
-            <div className={`flex items-center space-x-2 px-4 py-2 border rounded-xl font-mono text-xs font-bold transition ${
-              timeLeft < 60 
-                ? 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 animate-pulse' 
+            <div className={`flex items-center space-x-2 px-4 py-2 border rounded-xl font-mono text-xs font-bold transition ${timeLeft < 60
+                ? 'border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400 animate-pulse'
                 : 'border-zinc-200 dark:border-zinc-805 bg-zinc-100 dark:bg-zinc-900 text-indigo-600 dark:text-indigo-400'
-            }`}>
+              }`}>
               <Timer className="w-4 h-4 shrink-0" />
               <span>{formatTime(timeLeft)}</span>
             </div>
@@ -212,22 +211,20 @@ const Assessments = () => {
             <div className="flex border-b border-zinc-200 dark:border-zinc-900 overflow-x-auto space-x-6 scrollbar-none">
               <button
                 onClick={() => setActiveTab('new')}
-                className={`flex items-center space-x-2 pb-4 border-b-2 font-bold text-xs transition cursor-pointer ${
-                  activeTab === 'new' 
-                    ? 'border-zinc-950 dark:border-white text-zinc-950 dark:text-white' 
+                className={`flex items-center space-x-2 pb-4 border-b-2 font-bold text-xs transition cursor-pointer ${activeTab === 'new'
+                    ? 'border-zinc-950 dark:border-white text-zinc-950 dark:text-white'
                     : 'border-transparent text-zinc-450 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <PlayCircle className="w-4 h-4" />
                 <span>Start New Test</span>
               </button>
               <button
                 onClick={() => setActiveTab('history')}
-                className={`flex items-center space-x-2 pb-4 border-b-2 font-bold text-xs transition cursor-pointer ${
-                  activeTab === 'history' 
-                    ? 'border-zinc-950 dark:border-white text-zinc-950 dark:text-white' 
+                className={`flex items-center space-x-2 pb-4 border-b-2 font-bold text-xs transition cursor-pointer ${activeTab === 'history'
+                    ? 'border-zinc-950 dark:border-white text-zinc-950 dark:text-white'
                     : 'border-transparent text-zinc-450 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <History className="w-4 h-4" />
                 <span>History & Scores</span>
@@ -270,7 +267,7 @@ const Assessments = () => {
                     return (
                       <div key={idx} className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-xl p-5 flex justify-between items-center">
                         <div className="flex items-center space-x-4">
-                          <div className={`p-3 rounded-xl font-bold text-xs ${pct >= 70 ? 'bg-emerald-500/10 text-emerald-650 dark:text-emerald-450' : pct >= 40 ? 'bg-amber-500/10 text-amber-650 dark:text-amber-455' : 'bg-red-500/10 text-red-650 dark:text-red-450'}`}>
+                          <div className={`p-3 rounded-xl font-bold text-xs ${pct >= 70 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : pct >= 40 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
                             {pct}%
                           </div>
                           <div>
@@ -303,13 +300,12 @@ const Assessments = () => {
                 <button
                   key={idx}
                   onClick={() => setCurrentIdx(idx)}
-                  className={`w-9 h-9 text-xs font-bold rounded-xl border transition cursor-pointer ${
-                    currentIdx === idx
+                  className={`w-9 h-9 text-xs font-bold rounded-xl border transition cursor-pointer ${currentIdx === idx
                       ? 'bg-zinc-950 dark:bg-white border-zinc-950 dark:border-white text-white dark:text-zinc-950'
                       : answers[q.id]
-                      ? 'bg-zinc-205 dark:bg-zinc-850 border-zinc-300 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200'
-                      : 'bg-white dark:bg-zinc-950/40 border-zinc-200 dark:border-zinc-850 text-zinc-400 dark:text-zinc-650 hover:border-zinc-450 dark:hover:border-zinc-700'
-                  }`}
+                        ? 'bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200'
+                        : 'bg-white dark:bg-zinc-950/40 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-700'
+                    }`}
                 >
                   {idx + 1}
                 </button>
@@ -330,11 +326,10 @@ const Assessments = () => {
                       key={idx}
                       type="button"
                       onClick={() => selectOption(questions[currentIdx].id, option)}
-                      className={`w-full text-left px-5 py-4 border rounded-xl text-xs font-semibold transition duration-205 flex justify-between items-center cursor-pointer ${
-                        isSelected
+                      className={`w-full text-left px-5 py-4 border rounded-xl text-xs font-semibold transition duration-205 flex justify-between items-center cursor-pointer ${isSelected
                           ? 'border-zinc-950 dark:border-white bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-zinc-200'
                           : 'border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-950/40 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700'
-                      }`}
+                        }`}
                     >
                       <span>{option}</span>
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-zinc-950 dark:border-white bg-zinc-950 dark:bg-white' : 'border-zinc-300 dark:border-zinc-700'}`}>
@@ -383,18 +378,18 @@ const Assessments = () => {
               <Award className="w-16 h-16 mx-auto text-indigo-600 dark:text-indigo-400 mb-4 animate-bounce" />
               <h2 className="text-2xl font-bold mb-2">Assessment Graded!</h2>
               <p className="text-zinc-500 dark:text-zinc-405 text-xs mb-6">Your attempt for {result.topic} has been processed successfully.</p>
-              
+
               <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-8">
                 <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl">
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-455 font-bold uppercase">Total Questions</p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase">Total Questions</p>
                   <p className="text-xl font-bold mt-1 text-zinc-700 dark:text-zinc-300">{result.totalQuestions}</p>
                 </div>
                 <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl">
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-455 font-bold uppercase">Score</p>
-                  <p className="text-xl font-bold mt-1 text-indigo-650 dark:text-indigo-400">{result.score}</p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase">Score</p>
+                  <p className="text-xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">{result.score}</p>
                 </div>
                 <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 p-4 rounded-xl">
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-455 font-bold uppercase">Percentage</p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase">Percentage</p>
                   <p className="text-xl font-bold mt-1 text-emerald-650 dark:text-emerald-400">{result.percentage}%</p>
                 </div>
               </div>
@@ -416,9 +411,8 @@ const Assessments = () => {
                     <h4 className="text-xs font-bold leading-relaxed pr-6 text-zinc-900 dark:text-zinc-200">
                       {idx + 1}. {detail.questionText}
                     </h4>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center space-x-1 shrink-0 ${
-                      detail.correct ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-red-500/10 text-red-705 dark:text-red-400'
-                    }`}>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center space-x-1 shrink-0 ${detail.correct ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-red-500/10 text-red-700 dark:text-red-400'
+                      }`}>
                       {detail.correct ? (
                         <>
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
@@ -434,14 +428,14 @@ const Assessments = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="p-3 bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 rounded-xl">
-                      <span className="text-zinc-500 dark:text-zinc-450 block font-semibold">Your Answer:</span>
+                    <div className="p-3 bg-white dark:bg-zinc-955/60 border border-zinc-200 dark:border-zinc-900 rounded-xl">
+                      <span className="text-zinc-500 dark:text-zinc-400 block font-semibold">Your Answer:</span>
                       <span className={`font-bold mt-1 block ${detail.correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                         {detail.submittedAnswer || "(No answer submitted)"}
                       </span>
                     </div>
-                    <div className="p-3 bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 rounded-xl">
-                      <span className="text-zinc-500 dark:text-zinc-455 block font-semibold">Correct Answer:</span>
+                    <div className="p-3 bg-white dark:bg-zinc-955/60 border border-zinc-200 dark:border-zinc-900 rounded-xl">
+                      <span className="text-zinc-500 dark:text-zinc-400 block font-semibold">Correct Answer:</span>
                       <span className="text-emerald-650 dark:text-emerald-400 font-bold mt-1 block">
                         {detail.correctAnswer}
                       </span>
@@ -449,7 +443,7 @@ const Assessments = () => {
                   </div>
 
                   <div className="p-4 bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-900 rounded-xl">
-                    <span className="text-[10px] text-zinc-550 dark:text-zinc-400 font-bold uppercase flex items-center">
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-bold uppercase flex items-center">
                       <AlertCircle className="w-3.5 h-3.5 mr-1" /> Explanation
                     </span>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-1.5 font-medium">
