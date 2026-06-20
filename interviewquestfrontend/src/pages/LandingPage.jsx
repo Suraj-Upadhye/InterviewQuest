@@ -543,9 +543,7 @@ const LandingPage = () => {
             {/* Left Brand Col */}
             <div className="md:col-span-1 space-y-4">
               <span className="font-black text-xl text-zinc-950 dark:text-white">InterviewQuest</span>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
-                Verifying academic skills through comprehensive computer science syllabus catalogs and speech simulator feedback models.
-              </p>
+
             </div>
 
             {/* Link Cols */}
@@ -560,10 +558,11 @@ const LandingPage = () => {
             </div>
 
             <div>
-              <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Community</h4>
+              <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Contact</h4>
               <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
-                <li><a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">LinkedIn</a></li>
-                <li><a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">GitHub</a></li>
+                <li><a href="https://linkedin.com/in/suraj-upadhye" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">LinkedIn</a></li>
+                <li><a href="https://github.com/suraj-upadhye" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">GitHub</a></li>
+                <li><a href="mailto:s.upadhye6782@gmail.com" className="hover:text-zinc-950 dark:hover:text-white transition">E-mail</a></li>
               </ul>
             </div>
 
@@ -667,7 +666,7 @@ const LandingPage = () => {
 
             <form onSubmit={handleSaveSubject} className="flex-grow flex flex-col overflow-hidden">
               <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
-                
+
                 {/* Title & Code */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2">

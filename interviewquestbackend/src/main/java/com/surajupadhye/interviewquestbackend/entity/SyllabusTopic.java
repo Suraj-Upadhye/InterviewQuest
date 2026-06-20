@@ -21,7 +21,7 @@ public class SyllabusTopic {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
-    @JsonIgnoreProperties("topics")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Subject subject;
 
     @Column(nullable = false)
@@ -29,6 +29,9 @@ public class SyllabusTopic {
 
     @Column(nullable = false)
     private String slug;
+
+    @Column(name = "chapter", length = 100)
+    private String chapter;
 
     @Column(columnDefinition = "TEXT")
     private String content;

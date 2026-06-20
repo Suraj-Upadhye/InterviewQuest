@@ -88,4 +88,21 @@ public class SubjectController {
         subjectService.deleteTopic(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/api/admin/subjects/{subjectId}/chapters/rename")
+    public ResponseEntity<Void> renameChapter(
+            @PathVariable Long subjectId,
+            @RequestParam String oldName,
+            @RequestParam String newName) {
+        subjectService.renameChapter(subjectId, oldName, newName);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/api/admin/subjects/{subjectId}/chapters")
+    public ResponseEntity<Void> deleteChapter(
+            @PathVariable Long subjectId,
+            @RequestParam String chapterName) {
+        subjectService.deleteChapter(subjectId, chapterName);
+        return ResponseEntity.noContent().build();
+    }
 }

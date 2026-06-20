@@ -89,6 +89,7 @@ public class SubjectServiceImpl implements SubjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Syllabus topic not found with id " + id));
         topic.setTitle(topicDetails.getTitle());
         topic.setSlug(topicDetails.getSlug());
+        topic.setChapter(topicDetails.getChapter());
         topic.setContent(topicDetails.getContent());
         topic.setSortOrder(topicDetails.getSortOrder());
         return syllabusTopicRepository.save(topic);
@@ -99,5 +100,26 @@ public class SubjectServiceImpl implements SubjectService {
         SyllabusTopic topic = syllabusTopicRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Syllabus topic not found with id " + id));
         syllabusTopicRepository.delete(topic);
+    }
+
+    @Override
+    public void renameChapter(Long subjectId, String oldName, String newName) {
+        List<SyllabusTopic> topics = syllabusTopicRepository.findBySubjectIdOrderBySortOrderAsc(subjectId);
+        for (SyllabusTopic t : topics) {
+            if ((oldName == null && t.getChapter() == null) || (oldName != null && oldName.equals(t.getChapter()))) {
+                t.setChapter(newName);
+                syllabusTopicRepository.save(t);
+            }
+        }
+    }
+
+    @Override
+    public void deleteChapter(Long subjectId, String chapterName) {
+        List<SyllabusTopic> topics = syllabusTopicRepository.findBySubjectIdOrderBySortOrderAsc(subjectId);
+        for (SyllabusTopic t : topics) {
+            if ((chapterName == null && t.getChapter() == null) || (chapterName != null && chapterName.equals(t.getChapter()))) {
+                syllabusTopicRepository.delete(t);
+            }
+        }
     }
 }

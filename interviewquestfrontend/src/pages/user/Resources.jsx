@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   ArrowLeft, ArrowRight, BookOpen, Award, Sparkles,
-  Menu, X, Sun, Moon, HelpCircle, ChevronRight, ChevronDown,
+  Menu, X, Sun, Moon, HelpCircle, ChevronLeft, ChevronRight, ChevronDown,
   Search, List, Terminal, Database, Cpu, Globe, GitFork, Code, Loader2,
   Plus, Edit3, Trash2, Layers
 } from 'lucide-react';
@@ -136,99 +136,99 @@ const Resources = () => {
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState({});
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('resourcesSidebarCollapsed') === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('resourcesSidebarCollapsed', String(next));
+      return next;
+    });
+  };
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') ||
       (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   });
 
-  // Topic CRUD States
-  const [topicModalOpen, setTopicModalOpen] = useState(false);
-  const [editingTopic, setEditingTopic] = useState(null);
-  const [topicTitle, setTopicTitle] = useState('');
-  const [topicSlugState, setTopicSlugState] = useState('');
-  const [topicContent, setTopicContent] = useState('');
-  const [topicSortOrder, setTopicSortOrder] = useState(0);
-  const [topicSubmitting, setTopicSubmitting] = useState(false);
-  const [activeSubjectForTopic, setActiveSubjectForTopic] = useState(null);
+  // VS Code-style Inline Editor States
+  const [inlineInputVal, setInlineInputVal] = useState('');
+  const [addingSubject, setAddingSubject] = useState(false);
+  const [addingChapterSubjectId, setAddingChapterSubjectId] = useState(null);
+  const [addingTopicChapterKey, setAddingTopicChapterKey] = useState(null); // subjectSlug + '::' + chapterName
+  
+  const [editingSubjectId, setEditingSubjectId] = useState(null);
+  const [editingChapterKey, setEditingChapterKey] = useState(null); // subjectSlug + '::' + chapterName
+  const [editingTopicId, setEditingTopicId] = useState(null);
 
-  // Subject CRUD States
-  const [subjectModalOpen, setSubjectModalOpen] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [subjectTitle, setSubjectTitle] = useState('');
-  const [subjectCode, setSubjectCode] = useState('');
-  const [subjectSlugState, setSubjectSlugState] = useState('');
-  const [subjectDescription, setSubjectDescription] = useState('');
-  const [subjectIconName, setSubjectIconName] = useState('Cpu');
-  const [subjectShowOnLanding, setSubjectShowOnLanding] = useState(true);
-  const [subjectSubmitting, setSubjectSubmitting] = useState(false);
+  // Content pane direct edit states
+  const [isEditingContent, setIsEditingContent] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
-  const iconOptions = ['Cpu', 'Database', 'Globe', 'GitFork', 'Code', 'Layers', 'BookOpen'];
+  const [expandedChapters, setExpandedChapters] = useState({});
 
-  const handleSubjectTitleChange = (val) => {
-    setSubjectTitle(val);
-    if (!editingSubject) {
-      setSubjectSlugState(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+  const generateSubjectCode = (title) => {
+    const words = title.trim().split(/\s+/);
+    if (words.length > 1) {
+      return words.map(w => w[0]).join('').toUpperCase();
     }
+    return title.slice(0, 3).toUpperCase();
   };
 
-  const handleOpenAddSubject = () => {
-    setEditingSubject(null);
-    setSubjectTitle('');
-    setSubjectCode('');
-    setSubjectSlugState('');
-    setSubjectDescription('');
-    setSubjectIconName('Cpu');
-    setSubjectShowOnLanding(true);
-    setSubjectModalOpen(true);
+  const generateSlug = (title) => {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   };
 
-  const handleOpenEditSubject = (subj) => {
-    setEditingSubject(subj);
-    setSubjectTitle(subj.title);
-    setSubjectCode(subj.code);
-    setSubjectSlugState(subj.slug);
-    setSubjectDescription(subj.description || '');
-    setSubjectIconName(subj.iconName || 'Cpu');
-    setSubjectShowOnLanding(subj.showOnLandingPage);
-    setSubjectModalOpen(true);
-  };
-
-  const handleSaveSubject = async (e) => {
-    e.preventDefault();
-    if (!subjectTitle.trim() || !subjectCode.trim() || !subjectSlugState.trim()) {
-      alert('Subject title, code, and slug are required.');
+  const handleCommitAddSubject = async (title) => {
+    if (!title.trim()) {
+      setAddingSubject(false);
       return;
     }
-
     try {
-      setSubjectSubmitting(true);
+      const generatedSlug = generateSlug(title);
+      const generatedCode = generateSubjectCode(title);
       const payload = {
-        title: subjectTitle.trim(),
-        code: subjectCode.trim(),
-        slug: subjectSlugState.trim(),
-        description: subjectDescription.trim(),
-        iconName: subjectIconName,
-        showOnLandingPage: subjectShowOnLanding
+        title: title.trim(),
+        code: generatedCode,
+        slug: generatedSlug,
+        description: `Learn core concepts of ${title.trim()}`,
+        iconName: 'Cpu',
+        showOnLandingPage: true
       };
-
-      if (editingSubject) {
-        await API.put(`/api/admin/subjects/${editingSubject.id}`, payload);
-      } else {
-        await API.post('/api/admin/subjects', payload);
-      }
-      setSubjectModalOpen(false);
-      
+      await API.post('/api/admin/subjects', payload);
       const response = await API.get('/api/public/subjects');
       setSubjects(response.data || []);
-
-      if (editingSubject && editingSubject.slug !== subjectSlugState.trim()) {
-        navigate(`/resources/${subjectSlugState.trim()}`);
-      }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to save subject.');
     } finally {
-      setSubjectSubmitting(false);
+      setAddingSubject(false);
+    }
+  };
+
+  const handleCommitRenameSubject = async (subj, newTitle) => {
+    if (!newTitle.trim()) {
+      setEditingSubjectId(null);
+      return;
+    }
+    try {
+      const generatedSlug = generateSlug(newTitle);
+      const payload = {
+        ...subj,
+        title: newTitle.trim(),
+        slug: generatedSlug
+      };
+      await API.put(`/api/admin/subjects/${subj.id}`, payload);
+      const response = await API.get('/api/public/subjects');
+      setSubjects(response.data || []);
+      if (currentSubject && currentSubject.id === subj.id) {
+        navigate(`/resources/${generatedSlug}`);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to rename subject.');
+    } finally {
+      setEditingSubjectId(null);
     }
   };
 
@@ -248,75 +248,152 @@ const Resources = () => {
     }
   };
 
-  const handleTopicTitleChange = (val) => {
-    setTopicTitle(val);
-    if (!editingTopic) {
-      setTopicSlugState(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-    }
-  };
-
-  const handleOpenAddTopic = (subject) => {
-    setEditingTopic(null);
-    setTopicTitle('');
-    setTopicSlugState('');
-    setTopicContent('');
-    setTopicSortOrder(subject.topics ? subject.topics.length * 10 : 0);
-    setActiveSubjectForTopic(subject);
-    setTopicModalOpen(true);
-  };
-
-  const handleOpenEditTopic = (topic, subject) => {
-    setEditingTopic(topic);
-    setTopicTitle(topic.title);
-    setTopicSlugState(topic.slug);
-    setTopicContent(topic.content || '');
-    setTopicSortOrder(topic.sortOrder || 0);
-    setActiveSubjectForTopic(subject);
-    setTopicModalOpen(true);
-  };
-
-  const handleSaveTopic = async (e) => {
-    e.preventDefault();
-    if (!topicTitle.trim() || !topicSlugState.trim() || !topicContent.trim()) {
-      alert('Title, slug, and content are required.');
+  const handleCommitAddChapter = async (subject, chapterName) => {
+    if (!chapterName.trim()) {
+      setAddingChapterSubjectId(null);
       return;
     }
-
     try {
-      setTopicSubmitting(true);
+      // Find max sort order in this subject
+      const currentTopics = subject.topics || [];
+      const maxSort = currentTopics.reduce((max, t) => Math.max(max, t.sortOrder || 0), 0);
+      
       const payload = {
-        title: topicTitle.trim(),
-        slug: topicSlugState.trim(),
-        content: topicContent.trim(),
-        sortOrder: topicSortOrder
+        title: 'Introduction',
+        slug: `introduction-${generateSlug(chapterName)}-${Math.floor(Math.random() * 1000)}`,
+        chapter: chapterName.trim(),
+        content: `# Introduction to ${chapterName.trim()}\n\nStart writing content here...`,
+        sortOrder: maxSort + 10
       };
+      const response = await API.post(`/api/admin/subjects/${subject.id}/topics`, payload);
+      
+      const res = await API.get('/api/public/subjects');
+      const updatedSubjects = res.data || [];
+      setSubjects(updatedSubjects);
+      
+      // Auto-expand the new chapter
+      const chKey = `${subject.slug}-${chapterName.trim()}`;
+      setExpandedChapters(prev => ({ ...prev, [chKey]: true }));
 
-      let savedTopic;
-      if (editingTopic) {
-        const response = await API.put(`/api/admin/subjects/topics/${editingTopic.id}`, payload);
-        savedTopic = response.data;
-      } else {
-        const response = await API.post(`/api/admin/subjects/${activeSubjectForTopic.id}/topics`, payload);
-        savedTopic = response.data;
-      }
+      // Redirect to the newly created placeholder topic
+      navigate(`/resources/${subject.slug}/${response.data.slug}`);
+    } catch (err) {
+      alert('Failed to add chapter: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setAddingChapterSubjectId(null);
+    }
+  };
 
-      setTopicModalOpen(false);
+  const handleCommitRenameChapter = async (subject, oldName, newName) => {
+    if (!newName.trim() || oldName === newName.trim()) {
+      setEditingChapterKey(null);
+      return;
+    }
+    try {
+      await API.put(`/api/admin/subjects/${subject.id}/chapters/rename?oldName=${encodeURIComponent(oldName)}&newName=${encodeURIComponent(newName.trim())}`);
+      const response = await API.get('/api/public/subjects');
+      setSubjects(response.data || []);
+      
+      // Keep expansion state for new chapter key
+      const oldChKey = `${subject.slug}-${oldName}`;
+      const newChKey = `${subject.slug}-${newName.trim()}`;
+      setExpandedChapters(prev => {
+        const next = { ...prev };
+        next[newChKey] = next[oldChKey];
+        delete next[oldChKey];
+        return next;
+      });
+    } catch (err) {
+      alert('Failed to rename chapter: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setEditingChapterKey(null);
+    }
+  };
 
+  const handleDeleteChapter = async (subject, chapterName) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${chapterName}"? All its topics and content will be permanently lost.`)) return;
+    try {
+      await API.delete(`/api/admin/subjects/${subject.id}/chapters?chapterName=${encodeURIComponent(chapterName)}`);
+      
       const response = await API.get('/api/public/subjects');
       const updatedSubjects = response.data || [];
       setSubjects(updatedSubjects);
 
-      if (activeTopicData && (editingTopic?.id === activeTopicData.id || activeTopicData.slug === savedTopic.slug)) {
-        setActiveTopicData(savedTopic);
-      }
-
-      if (!editingTopic) {
-        navigate(`/resources/${activeSubjectForTopic.slug}/${savedTopic.slug}`);
+      // Check if we deleted the active topic
+      const activeTopicWasInDeletedChapter = activeTopicData && activeTopicData.chapter === chapterName;
+      if (activeTopicWasInDeletedChapter && currentSubject) {
+        const updatedSub = updatedSubjects.find(s => s.id === subject.id);
+        if (updatedSub && updatedSub.topics && updatedSub.topics.length > 0) {
+          navigate(`/resources/${subject.slug}/${updatedSub.topics[0].slug}`);
+        } else {
+          navigate(`/`);
+        }
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save syllabus topic.');
+      alert('Failed to delete chapter: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleCommitAddTopic = async (subject, chapterName, topicTitle) => {
+    if (!topicTitle.trim()) {
+      setAddingTopicChapterKey(null);
+      return;
+    }
+    try {
+      const generatedSlug = `${generateSlug(topicTitle)}-${Math.floor(Math.random() * 1000)}`;
+      // Find max sort order in this chapter
+      const currentTopics = subject.topics || [];
+      const chTopics = currentTopics.filter(t => t.chapter === chapterName);
+      const maxSort = chTopics.reduce((max, t) => Math.max(max, t.sortOrder || 0), 0);
+
+      const payload = {
+        title: topicTitle.trim(),
+        slug: generatedSlug,
+        chapter: chapterName,
+        content: `# ${topicTitle.trim()}\n\nStart writing content here...`,
+        sortOrder: maxSort + 10
+      };
+
+      const response = await API.post(`/api/admin/subjects/${subject.id}/topics`, payload);
+      
+      const res = await API.get('/api/public/subjects');
+      const updatedSubjects = res.data || [];
+      setSubjects(updatedSubjects);
+
+      // Redirect to the newly created topic
+      navigate(`/resources/${subject.slug}/${response.data.slug}`);
+    } catch (err) {
+      alert('Failed to add topic: ' + (err.response?.data?.message || err.message));
     } finally {
-      setTopicSubmitting(false);
+      setAddingTopicChapterKey(null);
+    }
+  };
+
+  const handleCommitRenameTopic = async (topic, newTitle) => {
+    if (!newTitle.trim()) {
+      setEditingTopicId(null);
+      return;
+    }
+    try {
+      const generatedSlug = `${generateSlug(newTitle)}-${Math.floor(Math.random() * 1000)}`;
+      const payload = {
+        ...topic,
+        title: newTitle.trim(),
+        slug: generatedSlug
+      };
+      const response = await API.put(`/api/admin/subjects/topics/${topic.id}`, payload);
+      
+      const res = await API.get('/api/public/subjects');
+      setSubjects(res.data || []);
+
+      if (activeTopicData && activeTopicData.id === topic.id) {
+        setActiveTopicData(response.data);
+        navigate(`/resources/${currentSubject.slug}/${response.data.slug}`);
+      }
+    } catch (err) {
+      alert('Failed to rename topic: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setEditingTopicId(null);
     }
   };
 
@@ -324,7 +401,7 @@ const Resources = () => {
     if (!window.confirm('Are you sure you want to permanently delete this chapter topic? All written theory content will be permanently lost.')) return;
     try {
       await API.delete(`/api/admin/subjects/topics/${topicId}`);
-      
+
       const response = await API.get('/api/public/subjects');
       const updatedSubjects = response.data || [];
       setSubjects(updatedSubjects);
@@ -339,6 +416,27 @@ const Resources = () => {
       }
     } catch (err) {
       alert('Failed to delete topic.');
+    }
+  };
+
+  const handleSaveContent = async () => {
+    if (!activeTopicData) return;
+    try {
+      setLoadingTopic(true);
+      const payload = {
+        ...activeTopicData,
+        content: editedContent
+      };
+      const response = await API.put(`/api/admin/subjects/topics/${activeTopicData.id}`, payload);
+      setActiveTopicData(response.data);
+      setIsEditingContent(false);
+      
+      const res = await API.get('/api/public/subjects');
+      setSubjects(res.data || []);
+    } catch (err) {
+      alert('Failed to save content: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoadingTopic(false);
     }
   };
 
@@ -367,6 +465,32 @@ const Resources = () => {
   }, []);
 
   const currentSubject = subjects.find(s => s.slug === subjectSlug);
+
+  // Group topics by chapter for each subject
+  const groupedChapters = useMemo(() => {
+    const groups = {};
+    subjects.forEach(sub => {
+      const subGroups = {};
+      const chaptersOrder = [];
+      if (sub.topics) {
+        sub.topics.forEach(t => {
+          const ch = t.chapter || 'General';
+          if (!subGroups[ch]) {
+            subGroups[ch] = [];
+            chaptersOrder.push(ch);
+          }
+          subGroups[ch].push(t);
+        });
+      }
+      groups[sub.slug] = {
+        chapters: subGroups,
+        order: chaptersOrder
+      };
+    });
+    return groups;
+  }, [subjects]);
+
+
 
   // Fetch active topic content dynamically when slugs change
   useEffect(() => {
@@ -400,12 +524,16 @@ const Resources = () => {
     fetchTopicContent();
   }, [subjectSlug, topicSlug, currentSubject, navigate]);
 
-  // Auto-expand folder representing active subject
+  // Auto-expand folder representing active subject and active chapter
   useEffect(() => {
     if (subjectSlug) {
       setExpandedFolders(prev => ({ ...prev, [subjectSlug]: true }));
     }
-  }, [subjectSlug]);
+    if (subjectSlug && activeTopicData && activeTopicData.chapter) {
+      const chKey = `${subjectSlug}::${activeTopicData.chapter}`;
+      setExpandedChapters(prev => ({ ...prev, [chKey]: true }));
+    }
+  }, [subjectSlug, activeTopicData]);
 
   // Handle theme modifications
   useEffect(() => {
@@ -632,29 +760,32 @@ const Resources = () => {
 
         {/* COLUMN 1: LEFT SIDEBAR (Width: 280px) */}
         <aside className={`
-          w-[280px] shrink-0 border-r border-zinc-200 dark:border-zinc-900 bg-zinc-50/20 dark:bg-[#09090b]
-          fixed md:sticky top-0 bottom-0 z-40 md:z-10 pt-20 md:pt-8 pb-8 px-6 flex flex-col justify-between
-          transition-all duration-300 overflow-y-auto h-screen
-          ${isMobileNavOpen ? 'left-0' : '-left-full md:left-0'}
+          shrink-0 border-zinc-200 dark:border-zinc-900 bg-zinc-50/20 dark:bg-[#09090b]
+          fixed md:sticky top-0 bottom-0 z-40 md:z-10 pt-20 md:pt-8 pb-8 flex flex-col justify-between
+          transition-all duration-300 h-screen custom-scrollbar overflow-y-auto
+          ${isSidebarCollapsed
+            ? 'md:w-0 md:px-0 md:opacity-0 md:pointer-events-none md:overflow-hidden md:border-r-0'
+            : 'w-[280px] px-6 border-r opacity-100'
+          }
+          ${isMobileNavOpen ? 'left-0 w-[280px] px-6 border-r' : '-left-full md:left-0'}
         `}>
           <div className="space-y-6">
 
             {/* Brand Logo & Back to Home */}
-            <div className="hidden md:flex items-center justify-between">
+            <div className="hidden md:flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/60 pb-3">
               <div onClick={() => navigate('/')} className="flex items-center space-x-2.5 cursor-pointer">
                 <Terminal className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <span className="font-black text-base tracking-tight text-zinc-950 dark:text-white">InterviewQuest</span>
               </div>
+              <button
+                onClick={toggleSidebarCollapse}
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-955 dark:hover:text-white rounded-lg transition cursor-pointer"
+                title="Collapse Sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Folder Combobox Selector */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
-              <div className="flex items-center space-x-2.5">
-                <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span className="text-xs font-black text-zinc-800 dark:text-zinc-200">CS Fundamentals</span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-            </div>
 
             {/* Search Box Trigger */}
             <button
@@ -672,7 +803,10 @@ const Resources = () => {
             <div className="space-y-2 pt-4">
               {isAdmin && (
                 <button
-                  onClick={handleOpenAddSubject}
+                  onClick={() => {
+                    setAddingSubject(true);
+                    setInlineInputVal('');
+                  }}
                   className="w-full flex items-center justify-center space-x-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] rounded-lg transition shadow cursor-pointer border-none mb-3"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -687,101 +821,284 @@ const Resources = () => {
 
                 return (
                   <div key={sub.slug} className="space-y-1">
-                    {/* Header trigger */}
+                    {/* Header trigger / Subject row */}
                     <div className="flex items-center justify-between group/folder">
-                      <button
-                        onClick={() => toggleFolder(sub.slug)}
-                        className={`
-                          flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer
-                          ${isActiveSubject
-                            ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-900/60'
-                            : 'text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/30 dark:hover:bg-zinc-900/20 hover:text-zinc-950 dark:hover:text-white'}
-                        `}
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <FolderIcon className={`w-4 h-4 ${isActiveSubject ? getSubjectColor(sub.slug) : 'text-zinc-400'}`} />
-                          <span className="truncate max-w-[130px]">{sub.title}</span>
-                        </div>
-                        {isFolderExpanded ? (
-                          <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0 ml-1" />
-                        ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-zinc-400 shrink-0 ml-1" />
-                        )}
-                      </button>
+                      {editingSubjectId === sub.id ? (
+                        <input
+                          type="text"
+                          value={inlineInputVal}
+                          onChange={(e) => setInlineInputVal(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleCommitRenameSubject(sub, inlineInputVal);
+                            else if (e.key === 'Escape') setEditingSubjectId(null);
+                          }}
+                          onBlur={() => handleCommitRenameSubject(sub, inlineInputVal)}
+                          className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2.5 py-1 text-xs font-bold focus:outline-none text-zinc-900 dark:text-white"
+                          autoFocus
+                        />
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => toggleFolder(sub.slug)}
+                            className={`
+                              flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer
+                              ${isActiveSubject
+                                ? 'text-zinc-955 dark:text-white bg-zinc-100 dark:bg-zinc-900/60'
+                                : 'text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/30 dark:hover:bg-zinc-900/20 hover:text-zinc-950 dark:hover:text-white'}
+                            `}
+                          >
+                            <div className="flex items-center space-x-2.5">
+                              <FolderIcon className={`w-4 h-4 ${isActiveSubject ? getSubjectColor(sub.slug) : 'text-zinc-400'}`} />
+                              <span className="truncate max-w-[130px]">{sub.title}</span>
+                            </div>
+                            {isFolderExpanded ? (
+                              <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0 ml-1" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5 text-zinc-400 shrink-0 ml-1" />
+                            )}
+                          </button>
 
-                      {/* Admin CRUD controls for Subject and adding Topics */}
-                      {isAdmin && (
-                        <div className="flex items-center space-x-1 ml-1 shrink-0 opacity-0 group-hover/folder:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => handleOpenAddTopic(sub)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-emerald-500 rounded-md transition cursor-pointer border-none bg-transparent"
-                            title="Add Chapter Topic"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenEditSubject(sub)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer border-none bg-transparent"
-                            title="Edit Subject"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSubject(sub.id)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-rose-500 rounded-md transition cursor-pointer border-none bg-transparent"
-                            title="Delete Subject"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                          {/* Admin controls next to Subject */}
+                          {isAdmin && (
+                            <div className="flex items-center space-x-1 ml-1 shrink-0 opacity-0 group-hover/folder:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setAddingChapterSubjectId(sub.id);
+                                  setInlineInputVal('');
+                                }}
+                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-emerald-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                title="New Chapter Folder"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingSubjectId(sub.id);
+                                  setInlineInputVal(sub.title);
+                                }}
+                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                title="Rename Subject"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSubject(sub.id)}
+                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-rose-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                title="Delete Subject"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
-                    {/* Nested Chapter Topics list */}
+                    {/* Chapters and Chapter Topics list */}
                     {isFolderExpanded && (
-                      <div className="pl-6 border-l border-zinc-200 dark:border-zinc-800 space-y-1 py-1 ml-5">
-                        {sub.topics && sub.topics.map((t, idx) => {
-                          const isTopicSelected = (activeTopicData && t.slug === activeTopicData.slug) || (!activeTopicData && t.slug === topicSlug);
-                          return (
-                            <div key={t.id || idx} className="flex items-center justify-between group/topic">
-                              <button
-                                onClick={() => handleTopicClick(sub.slug, t.slug)}
-                                className={`
-                                  flex-1 text-left px-3 py-2 rounded-md text-[11px] font-semibold transition-all duration-150 cursor-pointer truncate
-                                  ${isTopicSelected && isActiveSubject
-                                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 shadow-sm'
-                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}
-                                `}
-                              >
-                                {t.title}
-                              </button>
+                      <div className="pl-3 border-l border-zinc-200 dark:border-zinc-800/80 space-y-2 py-1 ml-4 animate-fadeIn">
+                        {groupedChapters[sub.slug] && groupedChapters[sub.slug].order.map((ch) => {
+                          const chKey = `${sub.slug}::${ch}`;
+                          const isChapterExpanded = !!expandedChapters[chKey];
+                          const topics = groupedChapters[sub.slug].chapters[ch] || [];
 
-                              {isAdmin && (
-                                <div className="flex items-center space-x-0.5 ml-1 shrink-0 opacity-0 group-hover/topic:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={() => handleOpenEditTopic(t, sub)}
-                                    className="p-1 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer border-none bg-transparent"
-                                    title="Edit Chapter Topic"
-                                  >
-                                    <Edit3 className="w-3 h-3" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteTopic(t.id, sub.slug)}
-                                    className="p-1 text-zinc-400 hover:text-rose-500 rounded-md transition cursor-pointer border-none bg-transparent"
-                                    title="Delete Chapter Topic"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
+                          return (
+                            <div key={ch} className="space-y-1">
+                              {/* Chapter Header Row */}
+                              <div className="flex items-center justify-between group/chapter">
+                                {editingChapterKey === chKey ? (
+                                  <input
+                                    type="text"
+                                    value={inlineInputVal}
+                                    onChange={(e) => setInlineInputVal(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCommitRenameChapter(sub, ch, inlineInputVal);
+                                      else if (e.key === 'Escape') setEditingChapterKey(null);
+                                    }}
+                                    onBlur={() => handleCommitRenameChapter(sub, ch, inlineInputVal)}
+                                    className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-bold focus:outline-none text-zinc-900 dark:text-white ml-2"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => setExpandedChapters(prev => ({ ...prev, [chKey]: !prev[chKey] }))}
+                                      className="flex-1 flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-zinc-100/30 dark:hover:bg-zinc-900/30 text-[10px] font-bold tracking-tight text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition cursor-pointer text-left"
+                                    >
+                                      <span className="truncate pr-1">{ch}</span>
+                                      {isChapterExpanded ? (
+                                        <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                      ) : (
+                                        <ChevronRight className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                      )}
+                                    </button>
+
+                                    {/* Admin controls next to Chapter */}
+                                    {isAdmin && (
+                                      <div className="flex items-center space-x-0.5 ml-1 shrink-0 opacity-0 group-hover/chapter:opacity-100 transition-opacity">
+                                        <button
+                                          onClick={() => {
+                                            setAddingTopicChapterKey(chKey);
+                                            setInlineInputVal('');
+                                          }}
+                                          className="p-1 text-zinc-400 hover:text-emerald-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                          title="New Chapter Topic"
+                                        >
+                                          <Plus className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditingChapterKey(chKey);
+                                            setInlineInputVal(ch);
+                                          }}
+                                          className="p-1 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                          title="Rename Chapter"
+                                        >
+                                          <Edit3 className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                          onClick={() => handleDeleteChapter(sub, ch)}
+                                          className="p-1 text-zinc-400 hover:text-rose-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                          title="Delete Chapter"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Chapter Topics list */}
+                              {isChapterExpanded && (
+                                <div className="pl-3 border-l border-zinc-200/60 dark:border-zinc-800/40 space-y-0.5 ml-2.5 py-0.5">
+                                  {topics.map((t, idx) => {
+                                    const isTopicSelected = (activeTopicData && t.slug === activeTopicData.slug) || (!activeTopicData && t.slug === topicSlug);
+                                    return (
+                                      <div key={t.id || idx} className="flex items-center justify-between group/topic">
+                                        {editingTopicId === t.id ? (
+                                          <input
+                                            type="text"
+                                            value={inlineInputVal}
+                                            onChange={(e) => setInlineInputVal(e.target.value)}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleCommitRenameTopic(t, inlineInputVal);
+                                              else if (e.key === 'Escape') setEditingTopicId(null);
+                                            }}
+                                            onBlur={() => handleCommitRenameTopic(t, inlineInputVal)}
+                                            className="w-full bg-white dark:bg-zinc-955 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-semibold focus:outline-none text-zinc-900 dark:text-white"
+                                            autoFocus
+                                          />
+                                        ) : (
+                                          <>
+                                            <button
+                                              onClick={() => handleTopicClick(sub.slug, t.slug)}
+                                              className={`
+                                                flex-1 text-left px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-150 cursor-pointer truncate
+                                                ${isTopicSelected && isActiveSubject
+                                                  ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 shadow-sm'
+                                                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}
+                                              `}
+                                            >
+                                              {t.title}
+                                            </button>
+
+                                            {isAdmin && (
+                                              <div className="flex items-center space-x-0.5 ml-1 shrink-0 opacity-0 group-hover/topic:opacity-100 transition-opacity">
+                                                <button
+                                                  onClick={() => {
+                                                    setEditingTopicId(t.id);
+                                                    setInlineInputVal(t.title);
+                                                  }}
+                                                  className="p-1 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                                  title="Rename Topic"
+                                                >
+                                                  <Edit3 className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                  onClick={() => handleDeleteTopic(t.id, sub.slug)}
+                                                  className="p-1 text-zinc-400 hover:text-rose-500 rounded-md transition cursor-pointer border-none bg-transparent"
+                                                  title="Delete Topic"
+                                                >
+                                                  <Trash2 className="w-3 h-3" />
+                                                </button>
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* Inline Add Topic input at the bottom of the chapter */}
+                                  {addingTopicChapterKey === chKey && (
+                                    <div className="pl-2.5 py-1">
+                                      <input
+                                        type="text"
+                                        value={inlineInputVal}
+                                        onChange={(e) => setInlineInputVal(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') handleCommitAddTopic(sub, ch, inlineInputVal);
+                                          else if (e.key === 'Escape') setAddingTopicChapterKey(null);
+                                        }}
+                                        onBlur={() => handleCommitAddTopic(sub, ch, inlineInputVal)}
+                                        placeholder="New topic title..."
+                                        className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-semibold focus:outline-none text-zinc-900 dark:text-white"
+                                        autoFocus
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
                           );
                         })}
+
+                        {/* Inline Add Chapter input at the bottom of the subject */}
+                        {addingChapterSubjectId === sub.id && (
+                          <div className="pl-3 py-1.5 ml-4">
+                            <div className="flex items-center space-x-1.5">
+                              <ChevronRight className="w-3 h-3 text-zinc-400 shrink-0" />
+                              <input
+                                type="text"
+                                value={inlineInputVal}
+                                onChange={(e) => setInlineInputVal(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleCommitAddChapter(sub, inlineInputVal);
+                                  else if (e.key === 'Escape') setAddingChapterSubjectId(null);
+                                }}
+                                onBlur={() => handleCommitAddChapter(sub, inlineInputVal)}
+                                placeholder="New chapter name..."
+                                className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-bold focus:outline-none text-zinc-900 dark:text-white"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
+
+              {/* Inline Add Subject input at the bottom of subjects list */}
+              {addingSubject && (
+                <div className="pt-2">
+                  <input
+                    type="text"
+                    value={inlineInputVal}
+                    onChange={(e) => setInlineInputVal(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleCommitAddSubject(inlineInputVal);
+                      else if (e.key === 'Escape') setAddingSubject(false);
+                    }}
+                    onBlur={() => handleCommitAddSubject(inlineInputVal)}
+                    placeholder="New subject title..."
+                    className="w-full bg-white dark:bg-zinc-955 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2.5 py-1.5 text-xs font-bold focus:outline-none text-zinc-900 dark:text-white"
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
 
           </div>
@@ -800,7 +1117,55 @@ const Resources = () => {
         </aside>
 
         {/* COLUMN 2: MIDDLE COLUMN (Main study content area) */}
-        <main className="flex-1 px-6 sm:px-12 md:px-16 pt-24 md:pt-12 pb-20 overflow-y-auto max-w-4xl">
+        <main className="flex-1 px-6 sm:px-12 md:px-16 pt-24 md:pt-12 pb-20 overflow-y-auto max-w-4xl custom-scrollbar">
+
+          {/* Top dynamic header bar for desktop (always visible) */}
+          <div className="hidden md:flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-6 min-h-[40px]">
+            <div className="flex items-center space-x-3">
+              {isSidebarCollapsed && (
+                <button
+                  onClick={toggleSidebarCollapse}
+                  className="flex items-center justify-center p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-950 dark:hover:text-white rounded-lg transition cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-sm"
+                  title="Expand Sidebar"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+              <span className="text-xs font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 animate-fadeIn">
+                {currentSubject.title}
+              </span>
+            </div>
+
+            {!loadingTopic && activeTopicData && isAdmin && (
+              isEditingContent ? (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleSaveContent}
+                    className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer border-none shadow-sm"
+                  >
+                    <span>Save Changes</span>
+                  </button>
+                  <button
+                    onClick={() => setIsEditingContent(false)}
+                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                  >
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setEditedContent(activeTopicData.content || '');
+                    setIsEditingContent(true);
+                  }}
+                  className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Topic Content</span>
+                </button>
+              )
+            )}
+          </div>
 
           {/* Subject indicator & content details */}
           {loadingTopic || !activeTopicData ? (
@@ -816,36 +1181,33 @@ const Resources = () => {
             </div>
           ) : (
             <>
-              {/* Subject indicator & header buttons */}
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-6">
-                <span className="text-xs font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 animate-fadeIn">
-                  {currentSubject.title}
-                </span>
-                {isAdmin && (
-                  <button
-                    onClick={() => handleOpenEditTopic(activeTopicData, currentSubject)}
-                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit Topic Content</span>
-                  </button>
-                )}
-              </div>
+              {isEditingContent ? (
+                <div className="flex flex-col h-[calc(100vh-280px)] space-y-4 animate-fadeIn mt-6">
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full flex-grow bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 font-mono text-xs focus:outline-none focus:border-indigo-500 resize-none leading-relaxed text-zinc-800 dark:text-zinc-200 custom-scrollbar shadow-inner"
+                    placeholder="Write detailed computer science study concepts here using Markdown... Supports standard markdown lists, code blocks, and diagrams [DIAGRAM: os-arch]"
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Main heading */}
+                  <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
+                    Understanding {activeTopicData.title}: The Core Foundations
+                  </h1>
 
-              {/* Main heading */}
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
-                Understanding {activeTopicData.title}: The Core Foundations
-              </h1>
+                  {/* Subtitle intro callout */}
+                  <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-1 animate-fadeIn">
+                    Dive deep into {activeTopicData.title.toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.
+                  </p>
 
-              {/* Subtitle intro callout */}
-              <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-1 animate-fadeIn">
-                Dive deep into {activeTopicData.title.toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.
-              </p>
-
-              {/* Article layout */}
-              <article className="prose dark:prose-invert max-w-none text-zinc-800 dark:text-zinc-300 animate-fadeIn">
-                {renderContent(activeTopicData.content)}
-              </article>
+                  {/* Article layout */}
+                  <article className="prose dark:prose-invert max-w-none text-zinc-800 dark:text-zinc-300 animate-fadeIn">
+                    {renderContent(activeTopicData.content)}
+                  </article>
+                </>
+              )}
 
               {/* Sequential lesson navigators */}
               <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900 pt-8 mt-16 gap-4 animate-fadeIn">
@@ -890,7 +1252,7 @@ const Resources = () => {
         </main>
 
         {/* COLUMN 3: RIGHT SIDEBAR ("On this page" outline - desktop only) */}
-        <aside className="hidden lg:block w-[240px] shrink-0 pt-16 px-6 h-screen sticky top-0 overflow-y-auto">
+        <aside className="hidden lg:block w-[240px] shrink-0 pt-16 px-6 h-screen sticky top-0 overflow-y-auto custom-scrollbar">
           <div className="space-y-6 sticky top-16">
 
             {/* Header outlines label */}
@@ -955,218 +1317,7 @@ const Resources = () => {
 
       </div>
 
-      {/* SUBJECTS FORM MODAL */}
-      {subjectModalOpen && (
-        <div className="fixed inset-0 bg-zinc-955/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
-            <button
-              onClick={() => setSubjectModalOpen(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-450 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer border-none bg-transparent"
-            >
-              <X className="w-4 h-4" />
-            </button>
 
-            <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-              {editingSubject ? 'Edit Subject Category' : 'Create New Subject'}
-            </h2>
-
-            <form onSubmit={handleSaveSubject} className="flex-grow flex flex-col overflow-hidden">
-              <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
-                
-                {/* Title & Code */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Subject Title *</label>
-                    <input
-                      type="text"
-                      value={subjectTitle}
-                      onChange={(e) => handleSubjectTitleChange(e.target.value)}
-                      placeholder="e.g. Operating Systems"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Code *</label>
-                    <input
-                      type="text"
-                      value={subjectCode}
-                      onChange={(e) => setSubjectCode(e.target.value)}
-                      placeholder="e.g. OS"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Slug */}
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">URL Slug (Generated) *</label>
-                  <input
-                    type="text"
-                    value={subjectSlugState}
-                    onChange={(e) => setSubjectSlugState(e.target.value)}
-                    placeholder="e.g. operating-systems"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Description</label>
-                  <textarea
-                    value={subjectDescription}
-                    onChange={(e) => setSubjectDescription(e.target.value)}
-                    placeholder="Enter subject catalog description overview..."
-                    rows="3"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs resize-none"
-                  />
-                </div>
-
-                {/* Icon Selection & Show on Landing Toggle */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lucide Icon</label>
-                    <select
-                      value={subjectIconName}
-                      onChange={(e) => setSubjectIconName(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-600 dark:text-zinc-300"
-                    >
-                      {iconOptions.map(icon => <option key={icon} value={icon}>{icon}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex items-center pt-5">
-                    <label className="flex items-center cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={subjectShowOnLanding}
-                        onChange={(e) => setSubjectShowOnLanding(e.target.checked)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-600 bg-zinc-100 dark:bg-zinc-905 focus:ring-indigo-500 cursor-pointer"
-                      />
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
-                    </label>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex space-x-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setSubjectModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={subjectSubmitting}
-                  className="w-1/2 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center border-none"
-                >
-                  {subjectSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-zinc-800" /> : 'Save Subject'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* SYLLABUS TOPIC FORM MODAL */}
-      {topicModalOpen && (
-        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[92vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
-            <button
-              onClick={() => setTopicModalOpen(false)}
-              className="absolute top-4 right-4 p-2 text-zinc-450 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer border-none bg-transparent"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-              {editingTopic ? 'Edit Syllabus Topic' : 'Add New Syllabus Topic'}
-              <span className="ml-2 text-xs font-bold text-zinc-400">({activeSubjectForTopic?.title})</span>
-            </h2>
-
-            <form onSubmit={handleSaveTopic} className="flex-grow flex flex-col overflow-hidden">
-              <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
-                
-                {/* Topic Title & Sort Order */}
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="col-span-3">
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Topic Title *</label>
-                    <input
-                      type="text"
-                      value={topicTitle}
-                      onChange={(e) => handleTopicTitleChange(e.target.value)}
-                      placeholder="e.g. Introduction to Thread Pools"
-                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Sort Order *</label>
-                    <input
-                      type="number"
-                      value={topicSortOrder}
-                      onChange={(e) => setTopicSortOrder(parseInt(e.target.value) || 0)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Slug */}
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">URL Slug (Generated) *</label>
-                  <input
-                    type="text"
-                    value={topicSlugState}
-                    onChange={(e) => setTopicSlugState(e.target.value)}
-                    placeholder="e.g. intro-to-thread-pools"
-                    className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
-                    required
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 flex flex-col min-h-[300px]">
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lesson Content (Markdown & Diagrams) *</label>
-                  <textarea
-                    value={topicContent}
-                    onChange={(e) => setTopicContent(e.target.value)}
-                    placeholder="Write detailed computer science study concepts here using Markdown... Supports: #, ##, ###, *, - lists, ```code blocks```, and diagrams [DIAGRAM: os-arch]"
-                    className="w-full flex-grow bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono resize-none leading-relaxed"
-                    required
-                  />
-                </div>
-
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex space-x-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setTopicModalOpen(false)}
-                  className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={topicSubmitting}
-                  className="w-1/2 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center border-none"
-                >
-                  {topicSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-zinc-800" /> : 'Save Topic'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

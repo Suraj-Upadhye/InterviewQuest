@@ -43,6 +43,7 @@ public class DatabaseInitializer implements CommandLineRunner {
                 .subject(os)
                 .title("Introduction to OS")
                 .slug("introduction-to-os")
+                .chapter("Chapter 1: Overview & Introduction")
                 .sortOrder(10)
                 .content("""
 An **Operating System (OS)** acts as an intermediary between a user of a computer and the computer hardware. The purpose of an operating system is to provide an environment in which a user can execute programs in a convenient and efficient manner.
@@ -84,6 +85,7 @@ Operating systems have evolved over time to fit different hardware architectures
                 .subject(os)
                 .title("Process Management")
                 .slug("process-management")
+                .chapter("Chapter 2: Process Control")
                 .sortOrder(20)
                 .content("""
 A **Process** is a program in execution. It represents the unit of work in a modern time-sharing operating system.
@@ -119,6 +121,7 @@ Each process is represented in the operating system by a **Process Control Block
                 .subject(os)
                 .title("CPU Scheduling")
                 .slug("cpu-scheduling")
+                .chapter("Chapter 3: CPU Scheduling")
                 .sortOrder(30)
                 .content("""
 **CPU Scheduling** is the basis of multi-programmed operating systems. By switching the CPU among processes, the operating system makes computing more productive.
@@ -151,6 +154,7 @@ Allocates a fixed time slice (time quantum) to each process in a circular queue.
                 .subject(os)
                 .title("Process Synchronization")
                 .slug("process-synchronization")
+                .chapter("Chapter 4: Synchronization & Semaphores")
                 .sortOrder(40)
                 .content("""
 Cooperating processes sharing local variables or shared memory segments can experience conflict, leading to **Race Conditions** if access is unregulated.
@@ -175,6 +179,7 @@ A critical section is a block of code accessing shared resources. A valid soluti
                 .subject(os)
                 .title("Deadlocks")
                 .slug("deadlocks")
+                .chapter("Chapter 5: Deadlock Handling")
                 .sortOrder(50)
                 .content("""
 A **Deadlock** is a state where a set of processes are permanently blocked because each process holds a resource and waits for another resource held by another process in the loop.
@@ -225,6 +230,7 @@ A closed chain of processes exists where each process waits for a resource held 
                 .subject(dbms)
                 .title("Introduction to DBMS")
                 .slug("introduction-to-dbms")
+                .chapter("Chapter 1: Relational Database Model")
                 .sortOrder(10)
                 .content("""
 A **Database Management System (DBMS)** is a system software used to store, organize, retrieve, and secure records.
@@ -251,6 +257,7 @@ The framework supports data independence by defining three abstraction layers:
                 .subject(dbms)
                 .title("Relational Model & SQL")
                 .slug("relational-model-and-sql")
+                .chapter("Chapter 2: SQL Query Operations")
                 .sortOrder(20)
                 .content("""
 The **Relational Model** organizes data records into two-dimensional tables (relations) consisting of rows (tuples) and columns (attributes).
@@ -277,6 +284,7 @@ INNER JOIN customers ON orders.customer_id = customers.customer_id;
                 .subject(dbms)
                 .title("Schema Normalization")
                 .slug("schema-normalization")
+                .chapter("Chapter 3: Normalization Forms")
                 .sortOrder(30)
                 .content("""
 **Normalization** structures relational databases to eliminate redundant records and prevent anomalies during database updates.
@@ -318,6 +326,7 @@ Satisfies 2NF and removes transitive dependencies (non-prime attributes must dep
                 .subject(cn)
                 .title("Network Stack & Layers")
                 .slug("network-stack-and-layers")
+                .chapter("Chapter 1: Reference Layers")
                 .sortOrder(10)
                 .content("""
 A network stack organizes network communications into structured layer groupings.
@@ -343,6 +352,7 @@ The standard reference model mapping network communications:
                 .subject(cn)
                 .title("Transport Layer (TCP/UDP)")
                 .slug("transport-layer-tcp-udp")
+                .chapter("Chapter 2: Routing & Transport")
                 .sortOrder(20)
                 .content("""
 The Transport Layer manages process-to-process delivery using logical port allocations.
@@ -381,6 +391,7 @@ Provides connectionless, fast, lightweight data delivery without sequencing or f
                 .subject(oop)
                 .title("OOP Paradigms Overview")
                 .slug("oop-paradigms-overview")
+                .chapter("Chapter 1: Core Design Pillars")
                 .sortOrder(10)
                 .content("""
 Object-Oriented Programming (OOP) is a software design methodology based on wrapping variables and functions into modular **Objects**.
@@ -423,6 +434,7 @@ Exposing clean interfaces while hiding nested backend operations.
                 .subject(dsa)
                 .title("Asymptotic Analysis")
                 .slug("asymptotic-analysis")
+                .chapter("Chapter 1: Performance Scales")
                 .sortOrder(10)
                 .content("""
 **Asymptotic Analysis** evaluates the relative speed and scale performance of algorithms as inputs grow.

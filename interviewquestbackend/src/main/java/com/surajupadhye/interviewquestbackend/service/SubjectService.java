@@ -18,4 +18,6 @@ public interface SubjectService {
     SyllabusTopic createTopic(Long subjectId, SyllabusTopic topic);
     SyllabusTopic updateTopic(Long id, SyllabusTopic topic);
     void deleteTopic(Long id);
+    void renameChapter(Long subjectId, String oldName, String newName);
+    void deleteChapter(Long subjectId, String chapterName);
 }
