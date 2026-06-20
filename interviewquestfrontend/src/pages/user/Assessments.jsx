@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import API from '../../services/api';
 import { 
   ArrowLeft, Timer, BookOpen, Calendar, Award, CheckCircle2, 
@@ -8,6 +8,7 @@ import {
 
 const Assessments = () => {
   const navigate = useNavigate();
+  const { topicSlug } = useParams();
 
   const topics = ['DSA', 'DBMS', 'OS', 'CN', 'OOP', 'APTITUDE'];
 
@@ -32,6 +33,15 @@ const Assessments = () => {
   useEffect(() => {
     fetchAttemptsHistory();
   }, []);
+
+  useEffect(() => {
+    if (topicSlug) {
+      const matched = topics.find(t => t.toUpperCase() === topicSlug.toUpperCase());
+      if (matched) {
+        startTest(matched);
+      }
+    }
+  }, [topicSlug]);
 
   // Timer countdown hook
   useEffect(() => {
@@ -170,10 +180,10 @@ const Assessments = () => {
             </button>
             <div>
               <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white">
-                Skill Assessments
+                Practice Quiz
               </h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {examActive ? `Active Timed Exam: ${selectedTopic}` : 'Challenge yourself with timed topic exams'}
+              <p className="text-xs text-zinc-550 dark:text-zinc-400">
+                {examActive ? `Active Timed Quiz: ${selectedTopic}` : 'Challenge yourself with timed practice quizzes'}
               </p>
             </div>
           </div>

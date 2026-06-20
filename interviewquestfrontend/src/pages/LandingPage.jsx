@@ -242,10 +242,10 @@ const LandingPage = () => {
               Study Modules
             </button>
             <button
-              onClick={() => navigate('/assessments')}
+              onClick={() => navigate('/practice-quiz')}
               className="hover:text-zinc-950 dark:hover:text-zinc-50 transition cursor-pointer"
             >
-              Timed Tests
+              Practice Quiz
             </button>
             <button
               onClick={() => navigate('/mock-interview')}
@@ -342,10 +342,10 @@ const LandingPage = () => {
               Study Modules
             </button>
             <button
-              onClick={() => { setMobileMenuOpen(false); navigate('/assessments'); }}
+              onClick={() => { setMobileMenuOpen(false); navigate('/practice-quiz'); }}
               className="block w-full text-left text-base font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white py-2 cursor-pointer"
             >
-              Timed Tests
+              Practice Quiz
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); navigate('/mock-interview'); }}
@@ -554,7 +554,7 @@ const LandingPage = () => {
               <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
                 <li><button onClick={() => navigate('/practice?topic=DSA')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">DSA Theory</button></li>
                 <li><button onClick={() => navigate('/practice')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">CS Fundamentals</button></li>
-                <li><button onClick={() => navigate('/assessments')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Assessment Suite</button></li>
+                <li><button onClick={() => navigate('/practice-quiz')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Practice Quiz</button></li>
                 <li><button onClick={() => navigate('/mock-interview')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Mock Interviews</button></li>
               </ul>
             </div>

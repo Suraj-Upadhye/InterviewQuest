@@ -4,12 +4,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/user/Dashboard';
-import Profile from './pages/user/Profile';
-import Practice from './pages/user/Practice';
 import Assessments from './pages/user/Assessments';
 import MockInterview from './pages/user/MockInterview';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import Companies from './pages/user/Companies';
 import LandingPage from './pages/LandingPage';
 import Resources from './pages/user/Resources';
 
@@ -60,10 +57,8 @@ function App() {
 
           {/* Secure User Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="/companies" element={<PrivateRoute><Companies /></PrivateRoute>} />
-          <Route path="/practice" element={<Practice />} />
-          <Route path="/assessments" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz/:topicSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
           <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
 
           {/* Secure Admin Routes */}

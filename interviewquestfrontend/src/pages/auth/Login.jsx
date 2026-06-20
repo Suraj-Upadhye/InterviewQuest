@@ -22,11 +22,7 @@ const Login = () => {
       setError('');
       setLoading(true);
       const loggedUser = await login(usernameOrEmail, password);
-      if (loggedUser.role === 'ROLE_ADMIN') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
       setError(err);
     } finally {
