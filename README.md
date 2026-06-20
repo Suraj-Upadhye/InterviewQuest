@@ -13,6 +13,10 @@ A full-stack web application designed to help students **ace campus placements**
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Groq AI](https://img.shields.io/badge/Groq-LLaMA%203.3-F55036?style=for-the-badge&logo=meta&logoColor=white)](https://groq.com/)
 
+<br>
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_InterviewQuest-brightgreen?style=for-the-badge)](https://interviewquestt.vercel.app/)
+
 </div>
 
 ---
