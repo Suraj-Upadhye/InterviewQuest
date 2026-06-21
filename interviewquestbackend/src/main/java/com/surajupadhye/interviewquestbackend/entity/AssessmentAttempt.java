@@ -3,6 +3,7 @@ package com.surajupadhye.interviewquestbackend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "assessment_attempts")
@@ -21,8 +22,13 @@ public class AssessmentAttempt {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private Topic topic;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id")
+    @JsonIgnoreProperties({"questions", "subject", "syllabusTopic"})
+    private Quiz quiz;
 
     @Column(nullable = false)
     private Integer score;

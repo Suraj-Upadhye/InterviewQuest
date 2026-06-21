@@ -20,7 +20,7 @@ public class Question {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private Topic topic;
 
     @Enumerated(EnumType.STRING)
@@ -44,4 +44,9 @@ public class Question {
     @Builder.Default
     @Column(name = "is_ai_generated", nullable = false)
     private boolean isAiGenerated = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Quiz quiz;
 }

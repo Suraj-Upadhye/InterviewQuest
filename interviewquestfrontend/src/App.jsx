@@ -58,7 +58,10 @@ function App() {
           {/* Secure User Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/practice-quiz" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/practice-quiz/:topicSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz/:subjectSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz/:subjectSlug/:topicSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz/attempt/:quizId" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+          <Route path="/practice-quiz/mix/:subjectSlugs" element={<PrivateRoute><Assessments /></PrivateRoute>} />
           <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
 
           {/* Secure Admin Routes */}

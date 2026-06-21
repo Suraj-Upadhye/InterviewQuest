@@ -720,7 +720,13 @@ Please follow these strict instructions:
 
   const handleLaunchPractice = () => {
     if (currentSubject) {
-      navigate(`/practice?topic=${currentSubject.code}`);
+      if (activeTopicData) {
+        navigate(`/practice-quiz/${subjectSlug}/${activeTopicData.slug}`);
+      } else {
+        navigate(`/practice-quiz/${subjectSlug}`);
+      }
+    } else {
+      navigate('/practice-quiz');
     }
   };
 
@@ -1099,6 +1105,16 @@ Please follow these strict instructions:
                                               `}
                                             >
                                               {t.title}
+                                            </button>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/practice-quiz/${sub.slug}/${t.slug}`);
+                                              }}
+                                              className="opacity-0 group-hover/topic:opacity-100 p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-400 hover:text-indigo-500 rounded-md transition cursor-pointer shrink-0 border-none bg-transparent"
+                                              title="Take Topic Quiz"
+                                            >
+                                              <HelpCircle className="w-3 h-3" />
                                             </button>
 
                                             {isAdmin && (
