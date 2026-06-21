@@ -182,7 +182,12 @@ public class SubjectServiceImpl implements SubjectService {
             }
 
             JsonNode rootNode = objectMapper.readTree(response.body());
-            return rootNode.path("choices").path(0).path("message").path("content").asText();
+            String content = rootNode.path("choices").path(0).path("message").path("content").asText();
+            if (content != null) {
+                // Clean up common AI Mermaid syntax errors: replacement of '-->|label|>' with '-->|label|'
+                content = content.replaceAll("(-->|-\\.->|==>|->)\\s*\\|\\s*([^|]+)\\s*\\|\\s*>", "$1|$2|");
+            }
+            return content;
 
         } catch (Exception e) {
             throw new RuntimeException("AI Content Generation failed: " + e.getMessage(), e);

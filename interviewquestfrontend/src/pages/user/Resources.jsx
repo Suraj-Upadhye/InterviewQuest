@@ -159,7 +159,7 @@ const Resources = () => {
   const [addingSubject, setAddingSubject] = useState(false);
   const [addingChapterSubjectId, setAddingChapterSubjectId] = useState(null);
   const [addingTopicChapterKey, setAddingTopicChapterKey] = useState(null); // subjectSlug + '::' + chapterName
-  
+
   const [editingSubjectId, setEditingSubjectId] = useState(null);
   const [editingChapterKey, setEditingChapterKey] = useState(null); // subjectSlug + '::' + chapterName
   const [editingTopicId, setEditingTopicId] = useState(null);
@@ -186,17 +186,34 @@ const Resources = () => {
 Please follow these strict instructions:
 1. Explain the concepts in a highly detailed manner but using very simple, clear, and direct language. Break down complex terminology into plain English. The resource must be optimized to help university students prepare for technical job interviews. Include common interview questions and key callouts.
 2. Format the response exclusively in clean, semantic HTML. Use only tags like <h2>, <h3>, <p>, <ul>, <ol>, <li>, <blockquote>, <table>, and <pre><code>.
-3. Do NOT use markdown syntax (do NOT use #, ##, **, * or single backticks). For example, use <strong>text</strong> instead of **text**, and <code>code</code> instead of \`code\`.
-4. If relevant (such as explaining process states, architecture, workflows, network packets, OOP relationships, etc.), generate a Mermaid diagram. Use the following block structure:
+3. Tables and Tabular Data: For all example datasets, comparison grids, inputs/outputs, database table structures, mock database values (such as Left Table and Right Table in Joins), you MUST use proper semantic HTML <table> tags including <thead>, <tbody>, <tr>, <th>, and <td>. Never display tabular/grid data as plain text, space-separated lists, or simple bullet points.
+4. Do NOT use markdown syntax (do NOT use #, ##, **, * or single backticks). For example, use <strong>text</strong> instead of **text**, and <code>code</code> instead of \`code\`.
+5. If relevant, generate one or more high-quality, visually engaging Mermaid diagrams to explain the concepts (you can generate multiple diagrams per topic, but do not force one if it is not educational or relevant). Use the following block structure:
    <pre><code class="language-mermaid">
-   graph TD
-     ...
+   [diagram syntax here]
    </code></pre>
-5. Strict Mermaid Syntax Rules:
+6. Supported Mermaid Diagram Types & Styles:
+   - Use a wide variety of Mermaid diagram types matching the topic context (e.g., Flowcharts, Sequence Diagrams, Class Diagrams, State Diagrams, Entity Relationship (ER) Diagrams, User Journeys, Gantt Charts, Pie Charts, Quadrant Charts, Requirement Diagrams, GitGraphs, C4 Diagrams, Mindmaps, Timelines, ZenUML, Sankey Diagrams, XY Charts, Block Diagrams, Packets, Kanbans, Architecture Diagrams, Radar Charts, Event Modeling, Treemaps, Venn Diagrams, Ishikawa (Fishbone) Diagrams, Wardley Maps, and TreeViews).
+   - Make the diagrams colorful and visually appealing (using subgraphs, custom class definitions, colors, node styling, and themes where supported).
+   - For Set Theory, SQL Joins, or intersection/union concepts, you MUST represent Venn Diagrams using a horizontal layout of three interconnected circular nodes: A((Left Table / Left Only)), AB((Intersection / Matching Rows)), and B((Right Table / Right Only)). Use style directives to highlight the active parts of the join with a vibrant color (like '#ec4899') and inactive parts with neutral light grey ('#f3f4f6').
+     For example, an INNER JOIN should highlight ONLY the center AB node:
+     flowchart LR
+       A((Table A<br/>Left Only)) <--> AB((Intersection<br/>Matching Rows)) <--> B((Table B<br/>Right Only))
+       style A fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
+       style B fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
+       style AB fill:#ec4899,stroke:#db2777,stroke-width:3px;
+     
+     A LEFT JOIN should highlight both A and AB:
+     flowchart LR
+       A((Table A<br/>Left Table)) <--> AB((Intersection<br/>Matching Rows)) <--> B((Table B<br/>Right Table))
+       style A fill:#ec4899,stroke:#db2777,stroke-width:3px;
+       style AB fill:#ec4899,stroke:#db2777,stroke-width:3px;
+       style B fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
+7. Strict Mermaid Syntax Rules:
    - All node labels containing spaces, parentheses, brackets, or special characters MUST be wrapped in double quotes (e.g. use A["Process Control Block (PCB)"] instead of A[Process Control Block (PCB)]).
    - Node IDs must be simple alphanumeric characters with no spaces or special symbols.
-   - Ensure all arrows and connectors are valid (e.g. --> or -.->).
-6. Return only the inner HTML content. Do not include <html>, <head>, or <body> tags.`;
+   - Ensure all arrows and connectors are valid (e.g. --> or -.->). Do NOT append an extra ">" after a label. Use "-->|label| B" or "-.->|label| B", NEVER "-->|label|> B" or "-.->|label|> B".
+8. Return only the inner HTML content. Do not include <html>, <head>, or <body> tags.`;
 
     setAiPromptText(template);
   }, [aiSubject, aiChapter, aiTopic, aiModalOpen]);
@@ -291,7 +308,7 @@ Please follow these strict instructions:
       // Find max sort order in this subject
       const currentTopics = subject.topics || [];
       const maxSort = currentTopics.reduce((max, t) => Math.max(max, t.sortOrder || 0), 0);
-      
+
       const payload = {
         title: 'Introduction',
         slug: `introduction-${generateSlug(chapterName)}-${Math.floor(Math.random() * 1000)}`,
@@ -300,11 +317,11 @@ Please follow these strict instructions:
         sortOrder: maxSort + 10
       };
       const response = await API.post(`/api/admin/subjects/${subject.id}/topics`, payload);
-      
+
       const res = await API.get('/api/public/subjects');
       const updatedSubjects = res.data || [];
       setSubjects(updatedSubjects);
-      
+
       // Auto-expand the new chapter
       const chKey = `${subject.slug}-${chapterName.trim()}`;
       setExpandedChapters(prev => ({ ...prev, [chKey]: true }));
@@ -327,7 +344,7 @@ Please follow these strict instructions:
       await API.put(`/api/admin/subjects/${subject.id}/chapters/rename?oldName=${encodeURIComponent(oldName)}&newName=${encodeURIComponent(newName.trim())}`);
       const response = await API.get('/api/public/subjects');
       setSubjects(response.data || []);
-      
+
       // Keep expansion state for new chapter key
       const oldChKey = `${subject.slug}-${oldName}`;
       const newChKey = `${subject.slug}-${newName.trim()}`;
@@ -348,7 +365,7 @@ Please follow these strict instructions:
     if (!window.confirm(`Are you sure you want to permanently delete "${chapterName}"? All its topics and content will be permanently lost.`)) return;
     try {
       await API.delete(`/api/admin/subjects/${subject.id}/chapters?chapterName=${encodeURIComponent(chapterName)}`);
-      
+
       const response = await API.get('/api/public/subjects');
       const updatedSubjects = response.data || [];
       setSubjects(updatedSubjects);
@@ -389,7 +406,7 @@ Please follow these strict instructions:
       };
 
       const response = await API.post(`/api/admin/subjects/${subject.id}/topics`, payload);
-      
+
       const res = await API.get('/api/public/subjects');
       const updatedSubjects = res.data || [];
       setSubjects(updatedSubjects);
@@ -416,7 +433,7 @@ Please follow these strict instructions:
         slug: generatedSlug
       };
       const response = await API.put(`/api/admin/subjects/topics/${topic.id}`, payload);
-      
+
       const res = await API.get('/api/public/subjects');
       setSubjects(res.data || []);
 
@@ -467,7 +484,7 @@ Please follow these strict instructions:
       const response = await API.put(`/api/admin/subjects/topics/${activeTopicData.id}`, payload);
       setActiveTopicData(response.data);
       setIsEditingContent(false);
-      
+
       const res = await API.get('/api/public/subjects');
       setSubjects(res.data || []);
     } catch (err) {
@@ -499,12 +516,12 @@ Please follow these strict instructions:
         prompt: aiPromptText
       });
       const generatedHtml = response.data.content;
-      
+
       setEditedContent(generatedHtml);
       if (editorRef.current?.getEditor()) {
         editorRef.current.getEditor().commands.setContent(generatedHtml);
       }
-      
+
       setIsEditingContent(true);
       setAiModalOpen(false);
     } catch (err) {
@@ -1272,33 +1289,33 @@ Please follow these strict instructions:
             </div>
           ) : (
             <>
-                  {/* Main heading */}
-                  {isEditingContent ? (
-                    <input
-                      type="text"
-                      value={editedTitle}
-                      onChange={(e) => setEditedTitle(e.target.value)}
-                      className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 pb-2 focus:border-purple-500 focus:outline-none outline-none transition animate-fadeIn"
-                      placeholder="Topic Title"
-                    />
-                  ) : (
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
-                      {activeTopicData.title}
-                    </h1>
-                  )}
+              {/* Main heading */}
+              {isEditingContent ? (
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 pb-2 focus:border-purple-500 focus:outline-none outline-none transition animate-fadeIn"
+                  placeholder="Topic Title"
+                />
+              ) : (
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
+                  {activeTopicData.title}
+                </h1>
+              )}
 
 
-                  {/* Rich Text Editor - Notion-like inline editing */}
-                  <article className="animate-fadeIn">
-                    <RichTextEditor
-                      key={activeTopicData.id}
-                      ref={editorRef}
-                      content={activeTopicData.content || ''}
-                      editable={isEditingContent}
-                      onContentChange={setEditedContent}
-                      onGenerateAI={handleGenerateAI}
-                    />
-                  </article>
+              {/* Rich Text Editor - Notion-like inline editing */}
+              <article className="animate-fadeIn">
+                <RichTextEditor
+                  key={activeTopicData.id}
+                  ref={editorRef}
+                  content={activeTopicData.content || ''}
+                  editable={isEditingContent}
+                  onContentChange={setEditedContent}
+                  onGenerateAI={handleGenerateAI}
+                />
+              </article>
 
               {/* Sequential lesson navigators */}
               <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900 pt-8 mt-16 gap-4 animate-fadeIn">
@@ -1412,7 +1429,7 @@ Please follow these strict instructions:
       {aiModalOpen && (
         <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
-            
+
             <button
               onClick={() => setAiModalOpen(false)}
               className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer border-none bg-transparent"

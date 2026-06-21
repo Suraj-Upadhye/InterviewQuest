@@ -367,7 +367,8 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
 
         for (let i = 0; i < mermaidBlocks.length; i++) {
           const block = mermaidBlocks[i];
-          const code = block.textContent || '';
+          const rawCode = block.textContent || '';
+          const code = rawCode.replace(/(-->|-\.->|==>|->)\s*\|\s*([^|]+)\s*\|\s*>/g, '$1|$2|');
           const pre = block.parentElement;
           if (!pre || !code.trim()) continue;
 
