@@ -1,7 +1,23 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import API from '../services/api';
 
 const AuthContext = createContext(null);
+
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -52,6 +68,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isAdmin = useMemo(() => {
+    if (!token) return false;
+    const payload = parseJwt(token);
+    return payload?.role === 'ROLE_ADMIN';
+  }, [token]);
+
   const value = {
     user,
     token,
@@ -59,7 +81,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
-    isAdmin: user?.role === 'ROLE_ADMIN'
+    isAdmin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

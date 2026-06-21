@@ -91,6 +91,7 @@ public class SubjectServiceImpl implements SubjectService {
         topic.setSlug(topicDetails.getSlug());
         topic.setChapter(topicDetails.getChapter());
         topic.setContent(topicDetails.getContent());
+        topic.setDescription(topicDetails.getDescription());
         topic.setSortOrder(topicDetails.getSortOrder());
         return syllabusTopicRepository.save(topic);
     }

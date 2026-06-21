@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminDashboard from '../admin/AdminDashboard';
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -13,7 +13,7 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  if (user?.role === 'ROLE_ADMIN') {
+  if (isAdmin) {
     return <AdminDashboard />;
   }
 

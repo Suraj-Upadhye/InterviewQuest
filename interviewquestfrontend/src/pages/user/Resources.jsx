@@ -8,6 +8,7 @@ import {
   Plus, Edit3, Trash2, Layers
 } from 'lucide-react';
 import API from '../../services/api';
+import RichTextEditor from '../../components/RichTextEditor';
 
 const iconMap = {
   Cpu,
@@ -166,6 +167,9 @@ const Resources = () => {
   // Content pane direct edit states
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editedContent, setEditedContent] = useState('');
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
+  const editorRef = useRef(null);
 
   const [expandedChapters, setExpandedChapters] = useState({});
 
@@ -262,7 +266,7 @@ const Resources = () => {
         title: 'Introduction',
         slug: `introduction-${generateSlug(chapterName)}-${Math.floor(Math.random() * 1000)}`,
         chapter: chapterName.trim(),
-        content: `# Introduction to ${chapterName.trim()}\n\nStart writing content here...`,
+        content: '',
         sortOrder: maxSort + 10
       };
       const response = await API.post(`/api/admin/subjects/${subject.id}/topics`, payload);
@@ -350,7 +354,7 @@ const Resources = () => {
         title: topicTitle.trim(),
         slug: generatedSlug,
         chapter: chapterName,
-        content: `# ${topicTitle.trim()}\n\nStart writing content here...`,
+        content: '',
         sortOrder: maxSort + 10
       };
 
@@ -423,9 +427,12 @@ const Resources = () => {
     if (!activeTopicData) return;
     try {
       setLoadingTopic(true);
+      const html = editorRef.current?.getHTML() || editedContent || '';
       const payload = {
         ...activeTopicData,
-        content: editedContent
+        title: editedTitle || activeTopicData.title,
+        description: editedDescription,
+        content: html
       };
       const response = await API.put(`/api/admin/subjects/topics/${activeTopicData.id}`, payload);
       setActiveTopicData(response.data);
@@ -438,6 +445,24 @@ const Resources = () => {
     } finally {
       setLoadingTopic(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    if (editorRef.current?.getEditor()) {
+      editorRef.current.getEditor().commands.setContent(activeTopicData?.content || '');
+    }
+    setIsEditingContent(false);
+  };
+
+  const handleGenerateAI = () => {
+    // TODO: Connect to AI API for topic content generation
+    if (!isEditingContent) {
+      setEditedContent(activeTopicData?.content || '');
+      setEditedTitle(activeTopicData?.title || '');
+      setEditedDescription(activeTopicData?.description || `Dive deep into ${(activeTopicData?.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`);
+      setIsEditingContent(true);
+    }
+    alert('AI content generation coming soon! This feature will use AI to generate comprehensive topic content.');
   };
 
   const [subjects, setSubjects] = useState([]);
@@ -535,6 +560,14 @@ const Resources = () => {
     }
   }, [subjectSlug, activeTopicData]);
 
+  // Reset editing state when navigating between topics
+  useEffect(() => {
+    setIsEditingContent(false);
+    setEditedContent('');
+    setEditedTitle('');
+    setEditedDescription('');
+  }, [topicSlug]);
+
   // Handle theme modifications
   useEffect(() => {
     if (theme === 'dark') {
@@ -573,24 +606,24 @@ const Resources = () => {
     : null;
 
   // Parse headings on active page to generate Toc dynamically
+  // Parse headings from HTML content for the right-sidebar table of contents
   const headings = useMemo(() => {
-    if (!activeTopicData || !activeTopicData.content) return [];
-    const lines = activeTopicData.content.split('\n');
-    const list = [];
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('### ')) {
-        const text = trimmed.replace('### ', '');
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        list.push({ id, text, level: 3 });
-      } else if (trimmed.startsWith('## ')) {
-        const text = trimmed.replace('## ', '');
-        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        list.push({ id, text, level: 2 });
-      }
-    });
-    return list;
-  }, [activeTopicData]);
+    const htmlContent = editedContent || activeTopicData?.content || '';
+    if (!htmlContent) return [];
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
+      const list = [];
+      doc.querySelectorAll('h2, h3').forEach(el => {
+        const text = el.textContent || '';
+        const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        list.push({ id, text, level: parseInt(el.tagName[1]) });
+      });
+      return list;
+    } catch {
+      return [];
+    }
+  }, [activeTopicData, editedContent]);
 
   // Track scroll position to update Right Toc highlights
   useEffect(() => {
@@ -1137,33 +1170,44 @@ const Resources = () => {
             </div>
 
             {!loadingTopic && activeTopicData && isAdmin && (
-              isEditingContent ? (
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                {isEditingContent ? (
+                  <>
+                    <button
+                      onClick={handleSaveContent}
+                      className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer border-none shadow-sm"
+                    >
+                      <span>Save Changes</span>
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                    >
+                      <span>Cancel</span>
+                    </button>
+                  </>
+                ) : (
                   <button
-                    onClick={handleSaveContent}
-                    className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer border-none shadow-sm"
+                    onClick={() => {
+                      setEditedContent(activeTopicData.content || '');
+                      setEditedTitle(activeTopicData.title || '');
+                      setEditedDescription(activeTopicData.description || `Dive deep into ${(activeTopicData.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`);
+                      setIsEditingContent(true);
+                    }}
+                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
                   >
-                    <span>Save Changes</span>
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit Topic Content</span>
                   </button>
-                  <button
-                    onClick={() => setIsEditingContent(false)}
-                    className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
-                  >
-                    <span>Cancel</span>
-                  </button>
-                </div>
-              ) : (
+                )}
                 <button
-                  onClick={() => {
-                    setEditedContent(activeTopicData.content || '');
-                    setIsEditingContent(true);
-                  }}
-                  className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
+                  onClick={handleGenerateAI}
+                  className="flex items-center space-x-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer border-none shadow-sm shadow-purple-500/20"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Edit Topic Content</span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Generate with AI</span>
                 </button>
-              )
+              </div>
             )}
           </div>
 
@@ -1181,33 +1225,51 @@ const Resources = () => {
             </div>
           ) : (
             <>
-              {isEditingContent ? (
-                <div className="flex flex-col h-[calc(100vh-280px)] space-y-4 animate-fadeIn mt-6">
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full flex-grow bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 font-mono text-xs focus:outline-none focus:border-indigo-500 resize-none leading-relaxed text-zinc-800 dark:text-zinc-200 custom-scrollbar shadow-inner"
-                    placeholder="Write detailed computer science study concepts here using Markdown... Supports standard markdown lists, code blocks, and diagrams [DIAGRAM: os-arch]"
-                  />
-                </div>
-              ) : (
-                <>
                   {/* Main heading */}
-                  <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
-                    Understanding {activeTopicData.title}: The Core Foundations
-                  </h1>
+                  {isEditingContent ? (
+                    <input
+                      type="text"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] w-full bg-transparent border-b border-zinc-200 dark:border-zinc-800 pb-2 focus:border-purple-500 focus:outline-none outline-none transition animate-fadeIn"
+                      placeholder="Topic Title"
+                    />
+                  ) : (
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-950 dark:text-white mt-3 mb-6 tracking-tight leading-[1.15] animate-fadeIn">
+                      {activeTopicData.title}
+                    </h1>
+                  )}
 
                   {/* Subtitle intro callout */}
-                  <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-1 animate-fadeIn">
-                    Dive deep into {activeTopicData.title.toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.
-                  </p>
+                  {isEditingContent ? (
+                    <textarea
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-300 dark:border-zinc-700 pl-4 py-1 w-full bg-transparent focus:border-purple-500 focus:outline-none outline-none transition resize-none animate-fadeIn"
+                      rows={2}
+                      placeholder="Topic Description / Subtitle (optional - clear to hide)"
+                    />
+                  ) : (
+                    (activeTopicData.description !== '' && activeTopicData.description !== undefined) && (
+                      <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-1 animate-fadeIn">
+                        {activeTopicData.description !== null
+                          ? activeTopicData.description
+                          : `Dive deep into ${(activeTopicData.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`}
+                      </p>
+                    )
+                  )}
 
-                  {/* Article layout */}
-                  <article className="prose dark:prose-invert max-w-none text-zinc-800 dark:text-zinc-300 animate-fadeIn">
-                    {renderContent(activeTopicData.content)}
+                  {/* Rich Text Editor - Notion-like inline editing */}
+                  <article className="animate-fadeIn">
+                    <RichTextEditor
+                      key={activeTopicData.id}
+                      ref={editorRef}
+                      content={activeTopicData.content || ''}
+                      editable={isEditingContent}
+                      onContentChange={setEditedContent}
+                      onGenerateAI={handleGenerateAI}
+                    />
                   </article>
-                </>
-              )}
 
               {/* Sequential lesson navigators */}
               <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-900 pt-8 mt-16 gap-4 animate-fadeIn">

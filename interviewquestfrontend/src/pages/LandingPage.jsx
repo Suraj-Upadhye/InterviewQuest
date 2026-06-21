@@ -19,7 +19,7 @@ const iconMap = {
 };
 
 const LandingPage = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -35,7 +35,6 @@ const LandingPage = () => {
   const [loadingSubjects, setLoadingSubjects] = useState(true);
 
   // Subject Edit States for Admins
-  const isAdmin = user && user.role === 'ROLE_ADMIN';
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [subjectTitle, setSubjectTitle] = useState('');
