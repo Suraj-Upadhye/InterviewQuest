@@ -105,4 +105,20 @@ public class SubjectController {
         subjectService.deleteChapter(subjectId, chapterName);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/api/admin/subjects/topics/generate-ai")
+    public ResponseEntity<java.util.Map<String, String>> generateTopicContent(
+            @RequestBody java.util.Map<String, String> request) {
+        String prompt = request.get("prompt");
+        if (prompt == null || prompt.isBlank()) {
+            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("error", "Prompt is required");
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        String generatedContent = subjectService.generateTopicContent(prompt);
+        java.util.Map<String, String> successResponse = new java.util.HashMap<>();
+        successResponse.put("content", generatedContent);
+        return ResponseEntity.ok(successResponse);
+    }
 }

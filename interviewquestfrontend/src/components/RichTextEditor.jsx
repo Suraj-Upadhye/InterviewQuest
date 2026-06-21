@@ -12,7 +12,8 @@ import { common, createLowlight } from 'lowlight';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Heading1, Heading2, Heading3, List, ListOrdered,
-  Code, Code2, Quote, Minus, GitBranch, Link2, Highlighter
+  Code, Code2, Quote, Minus, GitBranch, Link2, Highlighter,
+  Plus, X
 } from 'lucide-react';
 import './RichTextEditor.css';
 
@@ -31,6 +32,134 @@ const SLASH_COMMANDS = [
   { title: 'Mermaid Diagram', description: 'Insert a mermaid diagram block', icon: GitBranch, command: (editor) => editor.chain().focus().setCodeBlock({ language: 'mermaid' }).run() },
 ];
 
+// Fullscreen Mermaid Diagram Viewer Modal with Zoom/Pan controls
+const FullscreenMermaidModal = ({ svg, onClose }) => {
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
+  const containerRef = useRef(null);
+
+  // Reset zoom and pan
+  const handleReset = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleZoomIn = () => {
+    setScale(prev => Math.min(prev + 0.25, 4));
+  };
+
+  const handleZoomOut = () => {
+    setScale(prev => Math.max(prev - 0.25, 0.5));
+  };
+
+  // Mouse wheel zoom
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const zoomFactor = 0.1;
+    if (e.deltaY < 0) {
+      setScale(prev => Math.min(prev + zoomFactor, 4));
+    } else {
+      setScale(prev => Math.max(prev - zoomFactor, 0.5));
+    }
+  };
+
+  // Dragging / Panning
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-zinc-950/90 backdrop-blur-md animate-fadeIn select-none">
+      {/* Header bar */}
+      <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800 shrink-0">
+        <span className="text-xs font-black text-white uppercase tracking-wider">Mermaid Diagram - Fullscreen</span>
+        <div className="flex items-center space-x-3 text-zinc-300">
+          <button 
+            onClick={handleZoomOut}
+            className="p-2 hover:bg-zinc-850 rounded-lg hover:text-white transition cursor-pointer bg-transparent border-none"
+            title="Zoom Out"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <span className="text-xs font-mono font-bold w-12 text-center">{Math.round(scale * 100)}%</span>
+          <button 
+            onClick={handleZoomIn}
+            className="p-2 hover:bg-zinc-850 rounded-lg hover:text-white transition cursor-pointer bg-transparent border-none"
+            title="Zoom In"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={handleReset}
+            className="px-3 py-1.5 bg-zinc-800 text-xs font-bold rounded-lg hover:bg-zinc-700 text-white transition ml-2 cursor-pointer border-none"
+          >
+            Reset
+          </button>
+          <div className="w-px h-6 bg-zinc-800 mx-2" />
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-zinc-850 rounded-lg text-zinc-400 hover:text-white transition cursor-pointer bg-transparent border-none"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main body area for zooming & panning */}
+      <div 
+        ref={containerRef}
+        className={`flex-grow relative overflow-hidden flex items-center justify-center ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <div 
+          className="transition-transform duration-75 ease-out select-none pointer-events-none flex justify-center items-center"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          }}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+      </div>
+      
+      {/* Help text footer */}
+      <div className="py-3 text-center border-t border-zinc-800/60 shrink-0">
+        <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+          Drag to Pan • Scroll to Zoom • Esc to Close
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const RichTextEditor = forwardRef(({ content, editable = false, onContentChange, onGenerateAI }, ref) => {
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [slashMenuPos, setSlashMenuPos] = useState({ top: 0, left: 0 });
@@ -40,6 +169,7 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
 
   const containerRef = useRef(null);
   const slashMenuRef = useRef(null);
+  const [fullscreenSvg, setFullscreenSvg] = useState(null);
 
   // Refs for stale closure prevention (used in editor keydown handler)
   const showSlashMenuRef = useRef(false);
@@ -244,9 +374,38 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
           try {
             const id = `mermaid-${Date.now()}-${i}`;
             const { svg } = await mermaid.render(id, code.trim());
+            
             const wrapper = document.createElement('div');
             wrapper.className = 'mermaid-diagram-container';
-            wrapper.innerHTML = svg;
+            
+            // Create SVG container
+            const svgWrapper = document.createElement('div');
+            svgWrapper.className = 'mermaid-svg-wrapper';
+            svgWrapper.innerHTML = svg;
+            wrapper.appendChild(svgWrapper);
+
+            // Create fullscreen button overlay
+            const btn = document.createElement('button');
+            btn.className = 'mermaid-fullscreen-btn';
+            btn.title = 'View Fullscreen';
+            btn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+              </svg>
+            `;
+
+            // Click button opens fullscreen modal
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              setFullscreenSvg(svg);
+            });
+
+            // Clicking diagram opens fullscreen modal too
+            wrapper.addEventListener('click', () => {
+              setFullscreenSvg(svg);
+            });
+
+            wrapper.appendChild(btn);
             pre.replaceWith(wrapper);
           } catch (err) {
             console.error('Mermaid render error:', err);
@@ -428,6 +587,12 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
             <div className="slash-menu-empty">No matching commands</div>
           )}
         </div>
+      )}
+      {fullscreenSvg && (
+        <FullscreenMermaidModal
+          svg={fullscreenSvg}
+          onClose={() => setFullscreenSvg(null)}
+        />
       )}
     </div>
   );

@@ -480,6 +480,14 @@
   padding: 1.5rem 1rem;
   margin: 1.5rem 0;
   overflow-x: auto;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mermaid-diagram-container:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .dark .mermaid-diagram-container {
@@ -487,9 +495,62 @@
   border-color: #1e1e22;
 }
 
+.dark .mermaid-diagram-container:hover {
+  border-color: #3f3f46;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mermaid-svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
 .mermaid-diagram-container svg {
   max-width: 100%;
   height: auto;
+}
+
+/* Fullscreen button overlay */
+.mermaid-fullscreen-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+  color: #71717a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.mermaid-diagram-container:hover .mermaid-fullscreen-btn {
+  opacity: 1;
+}
+
+.mermaid-fullscreen-btn:hover {
+  background-color: #f4f4f5;
+  color: #6366f1;
+  border-color: #cbd5e1;
+}
+
+.dark .mermaid-fullscreen-btn {
+  background-color: #18181b;
+  border-color: #27272a;
+  color: #a1a1aa;
+}
+
+.dark .mermaid-fullscreen-btn:hover {
+  background-color: #27272a;
+  color: #818cf8;
+  border-color: #3f3f46;
 }
 
 /* ==========================================

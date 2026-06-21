@@ -168,8 +168,38 @@ const Resources = () => {
   const [isEditingContent, setIsEditingContent] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [editedTitle, setEditedTitle] = useState('');
-  const [editedDescription, setEditedDescription] = useState('');
   const editorRef = useRef(null);
+
+  // AI Content Generator States
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiSubject, setAiSubject] = useState('');
+  const [aiChapter, setAiChapter] = useState('');
+  const [aiTopic, setAiTopic] = useState('');
+  const [aiPromptText, setAiPromptText] = useState('');
+  const [generatingAI, setGeneratingAI] = useState(false);
+
+  // Generate dynamic prompt from template parameters
+  useEffect(() => {
+    if (!aiModalOpen) return;
+    const template = `Create a highly detailed, comprehensive study resource for the topic "${aiTopic}" under the chapter "${aiChapter}" in the subject "${aiSubject}".
+
+Please follow these strict instructions:
+1. Explain the concepts in a highly detailed manner but using very simple, clear, and direct language. Break down complex terminology into plain English. The resource must be optimized to help university students prepare for technical job interviews. Include common interview questions and key callouts.
+2. Format the response exclusively in clean, semantic HTML. Use only tags like <h2>, <h3>, <p>, <ul>, <ol>, <li>, <blockquote>, <table>, and <pre><code>.
+3. Do NOT use markdown syntax (do NOT use #, ##, **, * or single backticks). For example, use <strong>text</strong> instead of **text**, and <code>code</code> instead of \`code\`.
+4. If relevant (such as explaining process states, architecture, workflows, network packets, OOP relationships, etc.), generate a Mermaid diagram. Use the following block structure:
+   <pre><code class="language-mermaid">
+   graph TD
+     ...
+   </code></pre>
+5. Strict Mermaid Syntax Rules:
+   - All node labels containing spaces, parentheses, brackets, or special characters MUST be wrapped in double quotes (e.g. use A["Process Control Block (PCB)"] instead of A[Process Control Block (PCB)]).
+   - Node IDs must be simple alphanumeric characters with no spaces or special symbols.
+   - Ensure all arrows and connectors are valid (e.g. --> or -.->).
+6. Return only the inner HTML content. Do not include <html>, <head>, or <body> tags.`;
+
+    setAiPromptText(template);
+  }, [aiSubject, aiChapter, aiTopic, aiModalOpen]);
 
   const [expandedChapters, setExpandedChapters] = useState({});
 
@@ -431,7 +461,7 @@ const Resources = () => {
       const payload = {
         ...activeTopicData,
         title: editedTitle || activeTopicData.title,
-        description: editedDescription,
+        description: null,
         content: html
       };
       const response = await API.put(`/api/admin/subjects/topics/${activeTopicData.id}`, payload);
@@ -455,14 +485,33 @@ const Resources = () => {
   };
 
   const handleGenerateAI = () => {
-    // TODO: Connect to AI API for topic content generation
-    if (!isEditingContent) {
-      setEditedContent(activeTopicData?.content || '');
-      setEditedTitle(activeTopicData?.title || '');
-      setEditedDescription(activeTopicData?.description || `Dive deep into ${(activeTopicData?.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`);
+    if (!activeTopicData) return;
+    setAiSubject(currentSubject?.title || '');
+    setAiChapter(activeTopicData.chapter || 'General');
+    setAiTopic(activeTopicData.title || '');
+    setAiModalOpen(true);
+  };
+
+  const handleExecuteAIGeneration = async () => {
+    try {
+      setGeneratingAI(true);
+      const response = await API.post('/api/admin/subjects/topics/generate-ai', {
+        prompt: aiPromptText
+      });
+      const generatedHtml = response.data.content;
+      
+      setEditedContent(generatedHtml);
+      if (editorRef.current?.getEditor()) {
+        editorRef.current.getEditor().commands.setContent(generatedHtml);
+      }
+      
       setIsEditingContent(true);
+      setAiModalOpen(false);
+    } catch (err) {
+      alert('Failed to generate AI content: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setGeneratingAI(false);
     }
-    alert('AI content generation coming soon! This feature will use AI to generate comprehensive topic content.');
   };
 
   const [subjects, setSubjects] = useState([]);
@@ -565,7 +614,6 @@ const Resources = () => {
     setIsEditingContent(false);
     setEditedContent('');
     setEditedTitle('');
-    setEditedDescription('');
   }, [topicSlug]);
 
   // Handle theme modifications
@@ -1191,7 +1239,6 @@ const Resources = () => {
                     onClick={() => {
                       setEditedContent(activeTopicData.content || '');
                       setEditedTitle(activeTopicData.title || '');
-                      setEditedDescription(activeTopicData.description || `Dive deep into ${(activeTopicData.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`);
                       setIsEditingContent(true);
                     }}
                     className="flex items-center space-x-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs px-3 py-1.5 rounded-lg transition border border-zinc-200 dark:border-zinc-800 cursor-pointer"
@@ -1240,24 +1287,6 @@ const Resources = () => {
                     </h1>
                   )}
 
-                  {/* Subtitle intro callout */}
-                  {isEditingContent ? (
-                    <textarea
-                      value={editedDescription}
-                      onChange={(e) => setEditedDescription(e.target.value)}
-                      className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-300 dark:border-zinc-700 pl-4 py-1 w-full bg-transparent focus:border-purple-500 focus:outline-none outline-none transition resize-none animate-fadeIn"
-                      rows={2}
-                      placeholder="Topic Description / Subtitle (optional - clear to hide)"
-                    />
-                  ) : (
-                    (activeTopicData.description !== '' && activeTopicData.description !== undefined) && (
-                      <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg leading-relaxed font-semibold mb-10 border-l-2 border-zinc-200 dark:border-zinc-800 pl-4 py-1 animate-fadeIn">
-                        {activeTopicData.description !== null
-                          ? activeTopicData.description
-                          : `Dive deep into ${(activeTopicData.title || '').toLowerCase()} theory. Explore conceptual design structures, resource mapping definitions, and operations mechanics.`}
-                      </p>
-                    )
-                  )}
 
                   {/* Rich Text Editor - Notion-like inline editing */}
                   <article className="animate-fadeIn">
@@ -1379,6 +1408,110 @@ const Resources = () => {
 
       </div>
 
+      {/* AI PROMPT BUILDER MODAL */}
+      {aiModalOpen && (
+        <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
+            
+            <button
+              onClick={() => setAiModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer border-none bg-transparent"
+              disabled={generatingAI}
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
+              <Sparkles className="w-5 h-5 text-purple-500 mr-2 animate-pulse" />
+              Generate Topic Content with AI
+            </h2>
+
+            <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-semibold">
+                Tweak the context parameters below to dynamically adjust the prompt template, or edit the prompt directly to guide the AI draft generation.
+              </p>
+
+              {/* Form Grid for Parameters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Subject Title</label>
+                  <input
+                    type="text"
+                    value={aiSubject}
+                    onChange={(e) => setAiSubject(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 text-xs"
+                    disabled={generatingAI}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Chapter Name</label>
+                  <input
+                    type="text"
+                    value={aiChapter}
+                    onChange={(e) => setAiChapter(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 text-xs"
+                    disabled={generatingAI}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Topic Name</label>
+                  <input
+                    type="text"
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 text-xs"
+                    disabled={generatingAI}
+                  />
+                </div>
+              </div>
+
+              {/* Prompt Textarea */}
+              <div>
+                <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Prompt for Groq AI</label>
+                <textarea
+                  value={aiPromptText}
+                  onChange={(e) => setAiPromptText(e.target.value)}
+                  rows="8"
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-purple-500 text-xs font-mono resize-none leading-relaxed"
+                  placeholder="Enter custom prompt instructions..."
+                  disabled={generatingAI}
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex space-x-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+              <button
+                type="button"
+                onClick={() => setAiModalOpen(false)}
+                className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
+                disabled={generatingAI}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteAIGeneration}
+                disabled={generatingAI}
+                className="w-1/2 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-800/50 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center border-none"
+              >
+                {generatingAI ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white mr-1.5" />
+                    <span>Drafting Content...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-white" />
+                    <span>Generate Topic Content</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
