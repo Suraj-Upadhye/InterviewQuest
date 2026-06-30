@@ -6,6 +6,7 @@ import {
   Settings2, Key, Info, Award, AlertCircle, RefreshCw, LogOut, History,
   Mic, MicOff, Volume2, VolumeX
 } from 'lucide-react';import '../../App.css';
+import Navbar from '../../components/Navbar';
 
 const MockInterview = () => {
   const navigate = useNavigate();
@@ -318,8 +319,9 @@ const MockInterview = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-105 p-6 relative overflow-hidden flex flex-col transition-colors duration-300">
-      <div className="max-w-4xl mx-auto w-full z-10 relative flex-grow flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-105 relative overflow-hidden flex flex-col transition-colors duration-300">
+      {!activeSession && <Navbar variant="app" />}
+      <div className={`max-w-4xl mx-auto w-full z-10 relative flex-grow flex flex-col ${!activeSession ? 'pt-28 px-6 pb-12' : 'p-6'}`}>
         
         {/* Header */}
         <header className="flex items-center justify-between mb-8 border-b border-zinc-200 dark:border-zinc-900 pb-5 shrink-0">

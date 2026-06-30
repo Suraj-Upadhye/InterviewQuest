@@ -1,17 +1,13 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, BookOpen, Code, Brain } from 'lucide-react';
+import { BookOpen, Code, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AdminDashboard from '../admin/AdminDashboard';
+import Navbar from '../../components/Navbar';
 
 const Dashboard = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   if (isAdmin) {
     return <AdminDashboard />;
@@ -39,26 +35,20 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
-      <div className="max-w-6xl mx-auto z-10 relative">
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
+      <Navbar variant="app" />
 
-        {/* Navigation */}
-        <header className="flex justify-between items-center mb-12 border-b border-zinc-200 dark:border-zinc-900 pb-5">
-          <div>
-            <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white flex items-center gap-1.5">
-              InterviewQuest
-            </h1>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-xl transition cursor-pointer text-xs font-semibold"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </header>
+      <div className="max-w-6xl mx-auto z-10 relative pt-28 px-6 pb-12">
+
+        {/* Welcome Header */}
+        <div className="mb-10">
+          <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white">
+            Welcome back, {user?.username}
+          </h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            Choose a module below to continue your preparation
+          </p>
+        </div>
 
         {/* Action Options Cards Grid */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">

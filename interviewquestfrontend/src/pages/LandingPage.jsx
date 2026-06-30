@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   ArrowRight, Globe, Cpu, Database, Code, GitFork, Layers,
-  Search, Sun, Moon, Menu, X, ArrowUpRight, BookOpen,
+  Search, X, ArrowUpRight, BookOpen,
   Edit3, Trash2, Plus, Loader2
 } from 'lucide-react';
 import API from '../services/api';
+import Navbar from '../components/Navbar';
 
 const iconMap = {
   Cpu,
@@ -21,15 +22,9 @@ const iconMap = {
 const LandingPage = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
-
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') ||
-      (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
 
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
@@ -134,15 +129,7 @@ const LandingPage = () => {
     }
   };
 
-  // Apply theme class to html element
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+
 
   // Handle Ctrl+K shortcut for Search Bar
   useEffect(() => {
@@ -181,9 +168,7 @@ const LandingPage = () => {
     }
   }, [isSearchOpen]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+
 
   const getSubjectLink = (subj) => {
     const firstTopicSlug = subj.topics && subj.topics.length > 0 ? subj.topics[0].slug : 'intro';
@@ -216,170 +201,7 @@ const LandingPage = () => {
     <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 overflow-x-hidden transition-colors duration-300">
 
       {/* HEADER NAVBAR */}
-      <header className={`fixed top-6 inset-x-4 max-w-6xl mx-auto bg-white/70 dark:bg-[#09090b]/70 backdrop-blur-md border border-zinc-200/80 dark:border-zinc-900/80 rounded-2xl md:rounded-full z-50 shadow-lg shadow-zinc-100/50 dark:shadow-none transition-all duration-300 ${mobileMenuOpen ? 'overflow-hidden' : ''}`}>
-        <div className="px-6 md:px-8 h-16 flex justify-between items-center">
-
-          {/* Logo */}
-          <div
-            className="flex items-center space-x-2 cursor-pointer"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-zinc-950 dark:text-white">
-              InterviewQuest
-            </span>
-          </div>
-
-          {/* Desktop Nav links */}
-          <nav className="hidden md:flex items-center space-x-8 text-base font-bold text-zinc-600 dark:text-zinc-400">
-            <button
-              onClick={() => {
-                const el = document.getElementById('subjects');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="hover:text-zinc-950 dark:hover:text-zinc-50 transition cursor-pointer"
-            >
-              Study Modules
-            </button>
-            <button
-              onClick={() => navigate('/practice-quiz')}
-              className="hover:text-zinc-950 dark:hover:text-zinc-50 transition cursor-pointer"
-            >
-              Practice Quiz
-            </button>
-            <button
-              onClick={() => navigate('/mock-interview')}
-              className="hover:text-zinc-950 dark:hover:text-zinc-50 transition cursor-pointer"
-            >
-              Mock Interviews
-            </button>
-          </nav>
-
-          {/* Right Section Actions & Theme Toggle */}
-          <div className="hidden md:flex items-center space-x-5">
-
-            {/* Search Pill Input (Triggers Modal) */}
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center space-x-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 w-44 justify-between hover:border-zinc-300 dark:hover:border-zinc-700 transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-2">
-                <Search className="w-4 h-4 text-zinc-400" />
-                <span>Search</span>
-              </div>
-              <kbd className="bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] font-sans font-bold text-zinc-500">Ctrl K</kbd>
-            </button>
-
-            {/* Theme toggle switch */}
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 text-zinc-500 dark:text-zinc-450 hover:text-zinc-950 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
-              title="Change System Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-            {user ? (
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center space-x-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-zinc-850 dark:hover:bg-zinc-200 transition cursor-pointer"
-              >
-                <span>Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => navigate('/register')}
-                  className="text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 px-3 py-2.5 transition cursor-pointer"
-                >
-                  Sign Up
-                </button>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-zinc-850 dark:hover:bg-zinc-200 transition cursor-pointer"
-                >
-                  Log In
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Actions Header */}
-          <div className="flex md:hidden items-center space-x-2">
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-lg transition"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 text-zinc-500 dark:text-zinc-400 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition cursor-pointer"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu expanded */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white/95 dark:bg-[#09090b]/95 border-t border-zinc-200 dark:border-zinc-900 px-6 py-6 space-y-4 animate-fadeIn transition-colors duration-300">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                const el = document.getElementById('subjects');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="block w-full text-left text-base font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white py-2 cursor-pointer"
-            >
-              Study Modules
-            </button>
-            <button
-              onClick={() => { setMobileMenuOpen(false); navigate('/practice-quiz'); }}
-              className="block w-full text-left text-base font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white py-2 cursor-pointer"
-            >
-              Practice Quiz
-            </button>
-            <button
-              onClick={() => { setMobileMenuOpen(false); navigate('/mock-interview'); }}
-              className="block w-full text-left text-base font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white py-2 cursor-pointer"
-            >
-              Mock Interviews
-            </button>
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-900 flex flex-col space-y-3">
-              {user ? (
-                <button
-                  onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
-                  className="w-full text-center py-3 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-lg text-sm font-bold cursor-pointer"
-                >
-                  Go to Dashboard
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
-                    className="w-full text-center py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 rounded-lg text-sm font-bold cursor-pointer border border-zinc-300 dark:border-zinc-800"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}
-                    className="w-full text-center py-3 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-lg text-sm font-bold cursor-pointer"
-                  >
-                    Get Started
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </header>
+      <Navbar variant="landing" onSearchOpen={() => setIsSearchOpen(true)} />
 
       {/* HERO SECTION */}
       <section className="pt-40 pb-28 px-6 max-w-6xl mx-auto flex flex-col items-center text-center relative">

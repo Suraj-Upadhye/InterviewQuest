@@ -59,6 +59,14 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUser = (updatedFields) => {
+    setUser(prev => {
+      const updated = { ...prev, ...updatedFields };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const register = async (username, email, password, role) => {
     try {
       const response = await API.post('/api/auth/register', { username, email, password, role });
@@ -80,6 +88,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    updateUser,
     register,
     isAdmin
   };

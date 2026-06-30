@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   ArrowLeft, ArrowRight, BookOpen, Award, Sparkles,
   Menu, X, Sun, Moon, HelpCircle, ChevronLeft, ChevronRight, ChevronDown,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react';
 import API from '../../services/api';
 import RichTextEditor from '../../components/RichTextEditor';
+import Navbar from '../../components/Navbar';
 
 const iconMap = {
   Cpu,
@@ -149,10 +151,7 @@ const Resources = () => {
     });
   };
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') ||
-      (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
+  const { theme } = useTheme();
 
   // VS Code-style Inline Editor States
   const [inlineInputVal, setInlineInputVal] = useState('');
@@ -633,15 +632,7 @@ Please follow these strict instructions:
     setEditedTitle('');
   }, [topicSlug]);
 
-  // Handle theme modifications
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+
 
   // Auto-redirect if subjects list loaded and subjectSlug is invalid
   useEffect(() => {
@@ -650,9 +641,7 @@ Please follow these strict instructions:
     }
   }, [loading, subjects, currentSubject, navigate]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+
 
   const toggleFolder = (slug) => {
     setExpandedFolders(prev => ({ ...prev, [slug]: !prev[slug] }));
@@ -840,53 +829,36 @@ Please follow these strict instructions:
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 transition-colors duration-300">
-
-      {/* MOBILE HEADER BAR */}
-      <header className="md:hidden fixed top-0 inset-x-0 h-16 bg-white/95 dark:bg-[#09090b]/95 border-b border-zinc-200 dark:border-zinc-900 z-50 flex items-center justify-between px-6 backdrop-blur-md">
-        <div className="flex items-center space-x-3">
-          <button onClick={() => navigate('/')} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition cursor-pointer">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <span className="font-black text-sm tracking-tight">InterviewQuest</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button onClick={toggleTheme} className="p-2 text-zinc-550 dark:text-zinc-400">
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-          <button onClick={() => setIsMobileNavOpen(!isMobileNavOpen)} className="p-2 text-zinc-550 dark:text-zinc-400">
-            {isMobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </header>
+      <Navbar variant="app" />
 
       {/* THREE-COLUMN LAYOUT MAIN WRAPPER */}
-      <div className="flex max-w-[1600px] mx-auto min-h-screen relative">
+      <div className="flex max-w-[1600px] mx-auto min-h-screen relative pt-24">
 
         {/* COLUMN 1: LEFT SIDEBAR (Width: 280px) */}
         <aside className={`
           shrink-0 border-zinc-200 dark:border-zinc-900 bg-zinc-50/20 dark:bg-[#09090b]
-          fixed md:sticky top-0 bottom-0 z-40 md:z-10 pt-20 md:pt-8 pb-8 flex flex-col justify-between
-          transition-all duration-300 h-screen custom-scrollbar overflow-y-auto
+          fixed md:sticky top-24 bottom-0 z-40 md:z-10 pb-8 flex flex-col justify-between
+          transition-all duration-300 h-[calc(100vh-6rem)] custom-scrollbar overflow-y-auto
           ${isSidebarCollapsed
             ? 'md:w-0 md:px-0 md:opacity-0 md:pointer-events-none md:overflow-hidden md:border-r-0'
             : 'w-[280px] px-6 border-r opacity-100'
           }
-          ${isMobileNavOpen ? 'left-0 w-[280px] px-6 border-r' : '-left-full md:left-0'}
+          ${isMobileNavOpen ? 'left-0 w-[280px] px-6 border-r top-0 pt-20 h-screen z-50' : '-left-full md:left-0'}
         `}>
           <div className="space-y-6">
 
             {/* Brand Logo & Back to Home */}
-            <div className="hidden md:flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/60 pb-3">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/60 pb-3">
               <div onClick={() => navigate('/')} className="flex items-center space-x-2.5 cursor-pointer">
                 <Terminal className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                <span className="font-black text-base tracking-tight text-zinc-950 dark:text-white">InterviewQuest</span>
+                <span className="font-black text-base tracking-tight text-zinc-950 dark:text-white">Topics</span>
               </div>
               <button
-                onClick={toggleSidebarCollapse}
+                onClick={isMobileNavOpen ? () => setIsMobileNavOpen(false) : toggleSidebarCollapse}
                 className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-955 dark:hover:text-white rounded-lg transition cursor-pointer"
-                title="Collapse Sidebar"
+                title={isMobileNavOpen ? "Close Menu" : "Collapse Sidebar"}
               >
-                <ChevronLeft className="w-4 h-4" />
+                {isMobileNavOpen ? <X className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
               </button>
             </div>
 
@@ -1217,21 +1189,25 @@ Please follow these strict instructions:
 
           </div>
 
-          {/* Sidebar Footer theme toggle */}
+          {/* Version */}
           <div className="pt-6 border-t border-zinc-200 dark:border-zinc-900 flex items-center justify-between">
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition cursor-pointer text-zinc-500"
-              title="Change Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
             <span className="text-[10px] text-zinc-400 dark:text-zinc-600 font-bold tracking-widest uppercase">v1.1.0</span>
           </div>
         </aside>
 
         {/* COLUMN 2: MIDDLE COLUMN (Main study content area) */}
-        <main className="flex-1 px-6 sm:px-12 md:px-16 pt-24 md:pt-12 pb-20 overflow-y-auto max-w-4xl custom-scrollbar">
+        <main className="flex-grow px-6 sm:px-12 md:px-16 pt-8 pb-20 overflow-y-auto max-w-4xl custom-scrollbar">
+
+          {/* Mobile show topics button */}
+          {!isMobileNavOpen && (
+            <button
+              onClick={() => setIsMobileNavOpen(true)}
+              className="md:hidden mb-6 flex items-center space-x-2 text-xs font-bold bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-xl px-4 py-2.5 text-zinc-700 dark:text-zinc-350 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition shadow-sm cursor-pointer"
+            >
+              <List className="w-4 h-4" />
+              <span>Show Topics</span>
+            </button>
+          )}
 
           {/* Top dynamic header bar for desktop (always visible) */}
           <div className="hidden md:flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-3 mb-6 min-h-[40px]">

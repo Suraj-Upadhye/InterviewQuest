@@ -8,6 +8,8 @@ import {
   Plus, Edit3, Trash2, ChevronRight, ChevronDown, Check, HelpCircle,
   Layers, Sparkles, PlusCircle, Trash, Menu, LogOut, Search
 } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+
 
 const iconMap = {
   Cpu: Layers,
@@ -535,8 +537,9 @@ const Assessments = () => {
   // -------------------------------------------------------------
   if (result) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6">
-        <div className="max-w-3xl mx-auto w-full pt-10 space-y-6">
+      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
+        <Navbar variant="app" />
+        <div className="max-w-3xl mx-auto w-full pt-28 px-6 pb-12 space-y-6 z-10 relative">
           {/* Main Card */}
           <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-8 text-center shadow-sm relative overflow-hidden">
             <Award className="w-14 h-14 mx-auto text-purple-600 dark:text-purple-400 mb-4 animate-bounce" />
@@ -638,8 +641,9 @@ const Assessments = () => {
   if (activeSubject) {
     const { attemptedCount, totalCount, pct } = getProgressStats();
     return (
-      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6">
-        <div className="max-w-5xl mx-auto w-full pt-10 relative">
+      <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
+        <Navbar variant="app" />
+        <div className="max-w-5xl mx-auto w-full pt-28 px-6 pb-12 relative z-10">
           
           {/* Header row */}
           <header className="flex justify-between items-center mb-8 border-b border-zinc-155 dark:border-zinc-900 pb-5">
@@ -1059,12 +1063,13 @@ const Assessments = () => {
   // VIEW D: Practice Quiz root dashboard page (lists subjects)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
+      <Navbar variant="app" />
       {/* Background Decor */}
       <div className="absolute top-[-10%] right-[-10%] w-[35%] h-[35%] rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[35%] h-[35%] rounded-full bg-purple-500/5 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto z-10 relative">
+      <div className="max-w-6xl mx-auto z-10 relative pt-28 px-6 pb-12">
         {/* Navigation header */}
         <header className="flex justify-between items-center mb-10 border-b border-zinc-150 dark:border-zinc-900 pb-5">
           <div className="flex items-center space-x-3">

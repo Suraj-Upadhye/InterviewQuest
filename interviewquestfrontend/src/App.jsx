@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/user/Dashboard';
@@ -9,6 +10,7 @@ import MockInterview from './pages/user/MockInterview';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import Resources from './pages/user/Resources';
+import Profile from './pages/user/Profile';
 
 // Route Guard for authenticated candidates
 const PrivateRoute = ({ children }) => {
@@ -47,31 +49,34 @@ const AdminRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/resources/:subjectSlug/:topicSlug" element={<Resources />} />
-          <Route path="/resources/:subjectSlug" element={<Resources />} />
+      <ThemeProvider>
+        <Router>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/resources/:subjectSlug/:topicSlug" element={<Resources />} />
+            <Route path="/resources/:subjectSlug" element={<Resources />} />
 
-          {/* Secure User Routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/practice-quiz" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/practice-quiz/:subjectSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/practice-quiz/:subjectSlug/:topicSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/practice-quiz/attempt/:quizId" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/practice-quiz/mix/:subjectSlugs" element={<PrivateRoute><Assessments /></PrivateRoute>} />
-          <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
+            {/* Secure User Routes */}
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="/practice-quiz" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+            <Route path="/practice-quiz/:subjectSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+            <Route path="/practice-quiz/:subjectSlug/:topicSlug" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+            <Route path="/practice-quiz/attempt/:quizId" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+            <Route path="/practice-quiz/mix/:subjectSlugs" element={<PrivateRoute><Assessments /></PrivateRoute>} />
+            <Route path="/mock-interview" element={<PrivateRoute><MockInterview /></PrivateRoute>} />
 
-          {/* Secure Admin Routes */}
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            {/* Secure Admin Routes */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
-          {/* Default Redirect Fallbacks */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
+            {/* Default Redirect Fallbacks */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

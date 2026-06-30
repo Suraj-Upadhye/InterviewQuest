@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  LogOut, ArrowLeft, Sun, Moon, Loader2, BookOpen,
+  ArrowLeft, Loader2, BookOpen,
   Cpu, Database, Globe, GitFork, Code, Layers,
   Plus, Edit3, Trash2, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
+import Navbar from '../../components/Navbar';
 
 const iconMap = {
   Cpu,
@@ -26,12 +27,6 @@ const AdminDashboard = () => {
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
 
-  // Theme states
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') ||
-      (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
-
   // Subject Edit States for Admin
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
@@ -44,24 +39,6 @@ const AdminDashboard = () => {
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
 
   const iconOptions = ['Cpu', 'Database', 'Globe', 'GitFork', 'Code', 'Layers', 'BookOpen'];
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
 
   // Fetch all subjects from database
   const fetchAllSubjects = async () => {
@@ -156,47 +133,14 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-6 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
+      <Navbar variant="app" />
+
       {/* Visual background decor */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-rose-500/5 blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 blur-[100px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto z-10 relative">
-        {/* Navigation header */}
-        <header className="flex justify-between items-center mb-10 border-b border-zinc-200 dark:border-zinc-900 pb-5">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white cursor-pointer mr-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-extrabold text-zinc-950 dark:text-white flex items-center gap-1.5 font-sans animate-fadeIn">
-                Interview Quest Admin Panel
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {/* Theme toggle switch */}
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition cursor-pointer"
-              title="Change System Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-2 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-xl transition cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </header>
+      <div className="max-w-6xl mx-auto z-10 relative pt-28 px-6 pb-12">
 
         {/* Global Toolbar Options */}
         <div className="flex justify-between items-center mb-8 bg-zinc-50 dark:bg-[#0d0d11]/30 border border-zinc-200 dark:border-zinc-900 p-4 rounded-2xl">

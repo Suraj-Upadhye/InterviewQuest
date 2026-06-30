@@ -1,0 +1,34 @@
+/* Navbar Component Styles */
+
+/* Profile popover scale-in animation */
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.profile-popover {
+  animation: popoverIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile menu slide-down animation */
+@keyframes mobileMenuIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 600px;
+  }
+}
+
+.mobile-menu-animate {
+  animation: mobileMenuIn 0.25s ease-out forwards;
+  overflow: hidden;
+}
