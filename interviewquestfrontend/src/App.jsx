@@ -11,6 +11,11 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import Resources from './pages/user/Resources';
 import Profile from './pages/user/Profile';
+import AboutUs from './pages/AboutUs';
+import ContactUs from './pages/ContactUs';
+import Privacy from './pages/Privacy';
+import TermsConditions from './pages/TermsConditions';
+import ScrollToTop from './components/ScrollToTop';
 
 // Route Guard for authenticated candidates
 const PrivateRoute = ({ children }) => {
@@ -51,12 +56,19 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <Router>
+          <ScrollToTop />
           <Routes>
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/resources/:subjectSlug/:topicSlug" element={<Resources />} />
             <Route path="/resources/:subjectSlug" element={<Resources />} />
+
+            {/* Public Info Routes */}
+            <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/privacy-policy" element={<Privacy />} />
+            <Route path="/terms-conditions" element={<TermsConditions />} />
 
             {/* Secure User Routes */}
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />

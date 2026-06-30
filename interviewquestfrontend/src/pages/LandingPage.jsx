@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import API from '../services/api';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+
 
 const iconMap = {
   Cpu,
@@ -311,19 +313,20 @@ const LandingPage = () => {
               return (
                 <div
                   key={subj.id || idx}
-                  className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-8 transition-all duration-200 group flex flex-col justify-between animate-fadeIn relative"
+                  onClick={() => navigate(getSubjectLink(subj))}
+                  className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-8 transition-all duration-200 group flex flex-col justify-between animate-fadeIn relative cursor-pointer hover:shadow-md"
                 >
                   {isAdmin && (
-                    <div className="absolute top-4 right-4 flex space-x-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                    <div className="absolute top-4 right-4 flex space-x-1.5 opacity-60 hover:opacity-100 transition-opacity z-10">
                       <button
-                        onClick={() => handleOpenEditSubject(subj)}
+                        onClick={(e) => { e.stopPropagation(); handleOpenEditSubject(subj); }}
                         className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 text-zinc-650 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition shadow-sm cursor-pointer border-none"
                         title="Edit Subject"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteSubject(subj.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteSubject(subj.id); }}
                         className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 text-zinc-650 dark:text-red-400 hover:text-red-500 rounded-lg transition shadow-sm cursor-pointer border-none"
                         title="Delete Subject"
                       >
@@ -343,11 +346,10 @@ const LandingPage = () => {
                     </p>
                   </div>
                   <button
-                    onClick={() => navigate(getSubjectLink(subj))}
                     className="inline-flex items-center text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white cursor-pointer group-hover:translate-x-0.5 transition-transform border-none bg-transparent"
                   >
                     <span>Launch Study</span>
-                    <ArrowUpRight className="w-4 h-4 ml-1 text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white transition" />
+                    <ArrowUpRight className="w-4 h-4 ml-1 text-zinc-400 group-hover:text-zinc-955 dark:group-hover:text-white transition" />
                   </button>
                 </div>
               );
@@ -357,56 +359,7 @@ const LandingPage = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-zinc-200 dark:border-zinc-900 pt-16 pb-12 bg-white dark:bg-[#09090b]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-
-            {/* Left Brand Col */}
-            <div className="md:col-span-1 space-y-4">
-              <span className="font-black text-xl text-zinc-950 dark:text-white">InterviewQuest</span>
-
-            </div>
-
-            {/* Link Cols */}
-            <div>
-              <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Resources</h4>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
-                <li><button onClick={() => navigate('/practice?topic=DSA')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">DSA Theory</button></li>
-                <li><button onClick={() => navigate('/practice')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">CS Fundamentals</button></li>
-                <li><button onClick={() => navigate('/practice-quiz')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Practice Quiz</button></li>
-                <li><button onClick={() => navigate('/mock-interview')} className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Mock Interviews</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Contact</h4>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
-                <li><a href="https://linkedin.com/in/suraj-upadhye" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">LinkedIn</a></li>
-                <li><a href="https://github.com/suraj-upadhye" target="_blank" rel="noreferrer" className="hover:text-zinc-950 dark:hover:text-white transition">GitHub</a></li>
-                <li><a href="mailto:s.upadhye6782@gmail.com" className="hover:text-zinc-950 dark:hover:text-white transition">E-mail</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Other</h4>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
-                <li><button className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">About Us</button></li>
-                <li><button className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Contact Us</button></li>
-                <li><button className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Privacy Policy</button></li>
-                <li><button className="hover:text-zinc-950 dark:hover:text-white transition cursor-pointer">Terms & Conditions</button></li>
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Bottom Bar with Copyright & Theme Toggle */}
-          <div className="border-t border-zinc-200 dark:border-zinc-900 pt-8 flex flex-col sm:flex-row justify-center items-center gap-4 text-xs sm:text-sm text-zinc-500">
-            <p>&copy; {new Date().getFullYear()} InterviewQuest. All rights reserved.</p>
-
-
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* FULLY FUNCTIONAL SEARCH MODAL */}
       {isSearchOpen && (
