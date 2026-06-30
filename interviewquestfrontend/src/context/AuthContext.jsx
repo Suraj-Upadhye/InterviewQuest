@@ -39,9 +39,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (usernameOrEmail, password) => {
     try {
       const response = await API.post('/api/auth/login', { usernameOrEmail, password });
-      const { token, id, username, email, role } = response.data;
+      const { token, refreshToken, id, username, email, role } = response.data;
 
       localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify({ id, username, email, role }));
 
       setToken(token);
@@ -52,8 +53,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (idToken) => {
+    try {
+      const response = await API.post('/api/auth/google', { idToken });
+      const { token, refreshToken, id, username, email, role } = response.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify({ id, username, email, role }));
+
+      setToken(token);
+      setUser({ id, username, email, role });
+      return { id, username, email, role };
+    } catch (error) {
+      throw error.response?.data?.message || 'Google Sign-In failed. Please try again.';
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
@@ -67,9 +86,9 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const register = async (username, email, password, role) => {
+  const register = async (name, email, password, otp) => {
     try {
-      const response = await API.post('/api/auth/register', { username, email, password, role });
+      const response = await API.post('/api/auth/register', { name, email, password, otp });
       return response.data.message;
     } catch (error) {
       throw error.response?.data?.message || 'Registration failed. Please try again.';
@@ -87,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     token,
     loading,
     login,
+    loginWithGoogle,
     logout,
     updateUser,
     register,
@@ -103,3 +123,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

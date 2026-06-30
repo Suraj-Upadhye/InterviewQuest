@@ -9,7 +9,7 @@ import lombok.Setter;
 public class RegisterRequest {
     @NotBlank
     @Size(min = 3, max = 50)
-    private String username;
+    private String name; // renamed from username
 
     @NotBlank
     @Size(max = 100)
@@ -21,5 +21,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank
-    private String role; // "ROLE_USER" or "ROLE_ADMIN"
+    private String otp; // OTP verification code
+
+    private String role; // Optional, defaults to ROLE_USER in service
 }

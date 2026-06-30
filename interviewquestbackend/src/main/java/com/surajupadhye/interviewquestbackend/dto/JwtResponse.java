@@ -9,9 +9,19 @@ import lombok.Setter;
 @AllArgsConstructor
 public class JwtResponse {
     private String token;
-    private final String type = "Bearer";
+    private String type = "Bearer";
+    private String refreshToken;
     private Long id;
     private String username;
     private String email;
     private String role;
+
+    public JwtResponse(String token, String refreshToken, Long id, String username, String email, String role) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.role = role;
+    }
 }

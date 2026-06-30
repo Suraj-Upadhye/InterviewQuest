@@ -33,6 +33,13 @@ public class User {
     private Role role;
 
     @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "google_id", length = 100)
+    private String googleId;
+
+    @Builder.Default
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked = false;
 

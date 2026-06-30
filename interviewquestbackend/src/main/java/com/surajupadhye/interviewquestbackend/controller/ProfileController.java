@@ -36,7 +36,7 @@ public class ProfileController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody UpdateProfileRequest request) {
         try {
-            Map<String, Object> updated = profileService.updateUsername(userDetails.getId(), request.getUsername());
+            Map<String, Object> updated = profileService.updateUsername(userDetails.getId(), request.getName());
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));

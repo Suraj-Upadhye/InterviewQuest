@@ -13,10 +13,15 @@ const Profile = () => {
   const navigate = useNavigate();
 
   // Form states
-  const [newUsername, setNewUsername] = useState('');
+  const [newName, setNewName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Password visibility toggles
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Feedback states
   const [nameLoading, setNameLoading] = useState(false);
@@ -42,7 +47,7 @@ const Profile = () => {
   // Initialize name field
   useEffect(() => {
     if (user?.username) {
-      setNewUsername(user.username);
+      setNewName(user.username);
     }
   }, [user]);
 
@@ -67,12 +72,12 @@ const Profile = () => {
 
   const handleUpdateName = async (e) => {
     e.preventDefault();
-    if (!newUsername.trim()) {
-      setNameError('Username cannot be empty.');
+    if (!newName.trim()) {
+      setNameError('Name cannot be empty.');
       return;
     }
-    if (newUsername.trim().length < 3) {
-      setNameError('Username must be at least 3 characters.');
+    if (newName.trim().length < 3) {
+      setNameError('Name must be at least 3 characters.');
       return;
     }
 
@@ -80,11 +85,11 @@ const Profile = () => {
       setNameLoading(true);
       setNameError('');
       setNameSuccess('');
-      const response = await API.put('/api/users/profile', { username: newUsername.trim() });
-      updateUser({ username: response.data.username });
-      setNameSuccess('Username updated successfully!');
+      const response = await API.put('/api/users/profile', { name: newName.trim() });
+      updateUser({ username: response.data.name || response.data.username });
+      setNameSuccess('Name updated successfully!');
     } catch (err) {
-      setNameError(err.response?.data?.message || 'Failed to update username.');
+      setNameError(err.response?.data?.message || 'Failed to update name.');
     } finally {
       setNameLoading(false);
     }
@@ -221,11 +226,11 @@ const Profile = () => {
           {/* ═══ CENTER COLUMN: Edit Forms ═══ */}
           <div className={`${isAdmin ? 'lg:col-span-2' : 'lg:col-span-1'} space-y-6`}>
 
-            {/* Edit Username Form */}
+            {/* Edit Name Form */}
             <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm">
               <h3 className="text-base font-bold text-zinc-850 dark:text-zinc-200 flex items-center mb-1">
                 <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-                Edit Username
+                Edit Name
               </h3>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed mb-5">
                 Update your display name. This will be visible across the platform.
@@ -238,7 +243,7 @@ const Profile = () => {
                 </div>
               )}
               {nameError && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-450 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>{nameError}</span>
                 </div>
@@ -246,12 +251,12 @@ const Profile = () => {
 
               <form onSubmit={handleUpdateName} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Username</label>
+                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Name</label>
                   <input
                     type="text"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="Enter new username"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Enter new name"
                     className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
                     required
                   />
@@ -259,10 +264,10 @@ const Profile = () => {
                 <button
                   type="submit"
                   disabled={nameLoading}
-                  className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
+                  className="w-full py-2.5 bg-zinc-955 dark:bg-white text-white dark:text-zinc-955 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
                 >
                   {nameLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                    <><Save className="w-3.5 h-3.5 mr-1.5" /> Save Username</>
+                    <><Save className="w-3.5 h-3.5 mr-1.5" /> Save Name</>
                   )}
                 </button>
               </form>
@@ -293,44 +298,71 @@ const Profile = () => {
 
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Current Password</label>
-                  <input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
-                    required
-                  />
+                  <label className="block text-[10px] font-black text-zinc-550 mb-1.5 uppercase">Current Password</label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-4 pr-11 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-405 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 bg-transparent border-none cursor-pointer"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">New Password</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
-                      required
-                    />
+                    <label className="block text-[10px] font-black text-zinc-550 mb-1.5 uppercase">New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-4 pr-11 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-405 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 bg-transparent border-none cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Confirm Password</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
-                      required
-                    />
+                    <label className="block text-[10px] font-black text-zinc-550 mb-1.5 uppercase">Confirm Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-4 pr-11 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-405 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 bg-transparent border-none cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <button
                   type="submit"
                   disabled={pwLoading}
-                  className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
+                  className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
                 >
                   {pwLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                     <><Lock className="w-3.5 h-3.5 mr-1.5" /> Update Password</>
