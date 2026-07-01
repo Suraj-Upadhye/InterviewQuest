@@ -587,15 +587,17 @@ Please follow these strict instructions:
     if (!currentSubject) return;
 
     // Determine target topic slug
-    const targetTopic = currentSubject.topics.find(t => t.slug === topicSlug) || currentSubject.topics[0];
-    if (!targetTopic) {
-      setActiveTopicData(null);
+    let targetTopic = currentSubject.topics.find(t => t.slug === topicSlug);
+    
+    // Fallback: If topicSlug is not found or not provided, redirect to the first topic
+    if (!targetTopic && currentSubject.topics && currentSubject.topics.length > 0) {
+      targetTopic = currentSubject.topics[0];
+      navigate(`/resources/${subjectSlug}/${targetTopic.slug}`, { replace: true });
       return;
     }
-
-    // If the topic in URL is different from the first one and no topicSlug was provided, navigate to it
-    if (!topicSlug && targetTopic) {
-      navigate(`/resources/${subjectSlug}/${targetTopic.slug}`, { replace: true });
+    
+    if (!targetTopic) {
+      setActiveTopicData(null);
       return;
     }
 

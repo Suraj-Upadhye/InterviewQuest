@@ -50,25 +50,25 @@ const Auth = () => {
     const initializeGoogleSignIn = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
-          // Placeholder Google Client ID
-          client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+          // Retrieve from Vite environment variables or use fallback placeholder
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
           callback: handleGoogleCredentialResponse,
         });
         renderGoogleButton();
       }
     };
 
-    // Load Google GIS script dynamically
-    if (!document.getElementById('google-jssdk')) {
-      const script = document.createElement('script');
-      script.id = 'google-jssdk';
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = initializeGoogleSignIn;
-      document.head.appendChild(script);
-    } else {
+    if (window.google) {
       initializeGoogleSignIn();
+    } else {
+      // If the static script in index.html is still loading, wait for it
+      const interval = setInterval(() => {
+        if (window.google) {
+          initializeGoogleSignIn();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
   }, [activeTab]);
 

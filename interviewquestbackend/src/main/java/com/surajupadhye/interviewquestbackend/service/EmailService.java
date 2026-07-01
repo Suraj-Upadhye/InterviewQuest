@@ -3,6 +3,7 @@ package com.surajupadhye.interviewquestbackend.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
+    @Value("${spring.mail.from:onboarding@resend.dev}")
+    private String fromEmail;
 
     @Autowired(required = false)
     private JavaMailSender mailSender;
@@ -26,9 +30,9 @@ public class EmailService {
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("InterviewQuest <no-reply@interviewquest.com>");
+            message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("InterviewQuest - Verify Your Email");
+            message.setSubject("Verify Your Email - InterviewQuest");
             message.setText("Hello,\n\n" +
                     "Thank you for registering with InterviewQuest!\n" +
                     "Your email verification code is: " + otp + "\n\n" +
@@ -56,9 +60,9 @@ public class EmailService {
 
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("InterviewQuest <no-reply@interviewquest.com>");
+            message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("InterviewQuest - Reset Your Password");
+            message.setSubject("Reset Your Password - InterviewQuest");
             message.setText("Hello,\n\n" +
                     "We received a request to reset your password for your InterviewQuest account.\n" +
                     "Please click the link below to reset your password:\n" +

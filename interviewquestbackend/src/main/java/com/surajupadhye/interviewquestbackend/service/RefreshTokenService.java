@@ -33,14 +33,20 @@ public class RefreshTokenService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        // Delete existing token if present
-        refreshTokenRepository.deleteByUser(user);
+        Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
-                .build();
+        RefreshToken refreshToken;
+        if (existingTokenOpt.isPresent()) {
+            refreshToken = existingTokenOpt.get();
+            refreshToken.setToken(UUID.randomUUID().toString());
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+        } else {
+            refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .token(UUID.randomUUID().toString())
+                    .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
+                    .build();
+        }
 
         return refreshTokenRepository.save(refreshToken);
     }

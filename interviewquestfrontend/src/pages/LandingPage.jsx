@@ -392,15 +392,15 @@ const LandingPage = () => {
                 filteredSubjects.map((subj, idx) => (
                   <div
                     key={idx}
-                    onClick={() => handleSearchResultClick(subj.link)}
-                    className="pt-3 pb-2 px-3 hover:bg-zinc-100 dark:hover:bg-zinc-950 rounded-lg cursor-pointer transition flex justify-between items-center group"
+                    onClick={() => handleSearchResultClick(getSubjectLink(subj))}
+                    className="pt-3 pb-2 px-3 hover:bg-zinc-100 dark:hover:bg-zinc-955 rounded-lg cursor-pointer transition flex justify-between items-center group"
                   >
                     <div>
-                      <h4 className="text-sm sm:text-base font-bold text-zinc-950 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+                      <h4 className="text-sm sm:text-base font-bold text-zinc-955 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
                         {subj.title}
                       </h4>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-semibold mt-0.5 line-clamp-1">
-                        {subj.desc}
+                        {subj.description}
                       </p>
                     </div>
                     <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white transition shrink-0 ml-4" />
