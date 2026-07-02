@@ -116,7 +116,8 @@ public class AuthService {
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                role
+                role,
+                userDetails.isGoogleUser()
         );
     }
 
@@ -191,7 +192,8 @@ public class AuthService {
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                role
+                role,
+                user.getGoogleId() != null
         );
     }
 

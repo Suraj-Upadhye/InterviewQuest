@@ -46,7 +46,7 @@ const AboutUs = () => {
               <div className="inline-flex p-3 rounded-xl bg-white dark:bg-zinc-900 text-indigo-605 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-800 mb-6 group-hover:scale-105 transition-transform shadow-sm">
                 <Award className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-955 dark:text-white mb-3">Interactive Quizzes</h3>
+              <h3 className="text-xl font-bold text-zinc-950 dark:text-white mb-3">Interactive Quizzes</h3>
               <p className="text-zinc-550 dark:text-zinc-400 text-sm leading-relaxed">
                 Test your knowledge retention with timed assessments tailored to specific subjects or mixed topics for a realistic challenge.
               </p>
@@ -57,7 +57,7 @@ const AboutUs = () => {
               <div className="inline-flex p-3 rounded-xl bg-white dark:bg-zinc-900 text-indigo-605 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-800 mb-6 group-hover:scale-105 transition-transform shadow-sm">
                 <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-955 dark:text-white mb-3">AI Mock Interviews</h3>
+              <h3 className="text-xl font-bold text-zinc-950 dark:text-white mb-3">AI Mock Interviews</h3>
               <p className="text-zinc-550 dark:text-zinc-400 text-sm leading-relaxed">
                 Refine your communication and technical explanation skills using our interactive, voice/text AI interviewer.
               </p>

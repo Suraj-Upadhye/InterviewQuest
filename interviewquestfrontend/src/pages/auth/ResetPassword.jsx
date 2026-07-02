@@ -61,7 +61,7 @@ const ResetPassword = () => {
 
         {/* Brand Link */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-extrabold tracking-tight text-zinc-955 dark:text-white hover:opacity-80 transition">
+          <Link to="/" className="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white hover:opacity-80 transition">
             InterviewQuest
           </Link>
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">

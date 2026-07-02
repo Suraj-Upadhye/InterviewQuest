@@ -39,15 +39,15 @@ export const AuthProvider = ({ children }) => {
   const login = async (usernameOrEmail, password) => {
     try {
       const response = await API.post('/api/auth/login', { usernameOrEmail, password });
-      const { token, refreshToken, id, username, email, role } = response.data;
+      const { token, refreshToken, id, username, email, role, isGoogleUser } = response.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify({ id, username, email, role }));
+      localStorage.setItem('user', JSON.stringify({ id, username, email, role, isGoogleUser }));
 
       setToken(token);
-      setUser({ id, username, email, role });
-      return { id, username, email, role };
+      setUser({ id, username, email, role, isGoogleUser });
+      return { id, username, email, role, isGoogleUser };
     } catch (error) {
       throw error.response?.data?.message || 'Login failed. Please check your credentials.';
     }
@@ -56,15 +56,15 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async (idToken) => {
     try {
       const response = await API.post('/api/auth/google', { idToken });
-      const { token, refreshToken, id, username, email, role } = response.data;
+      const { token, refreshToken, id, username, email, role, isGoogleUser } = response.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify({ id, username, email, role }));
+      localStorage.setItem('user', JSON.stringify({ id, username, email, role, isGoogleUser }));
 
       setToken(token);
-      setUser({ id, username, email, role });
-      return { id, username, email, role };
+      setUser({ id, username, email, role, isGoogleUser });
+      return { id, username, email, role, isGoogleUser };
     } catch (error) {
       throw error.response?.data?.message || 'Google Sign-In failed. Please try again.';
     }

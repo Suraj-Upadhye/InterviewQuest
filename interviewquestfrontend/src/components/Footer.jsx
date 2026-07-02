@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="md:col-span-1 space-y-4">
             <span 
               onClick={() => navigate('/')} 
-              className="font-black text-xl text-zinc-955 dark:text-white cursor-pointer"
+              className="font-black text-xl text-zinc-950 dark:text-white cursor-pointer"
             >
               InterviewQuest
             </span>
@@ -23,7 +23,7 @@ const Footer = () => {
 
           {/* Link Cols */}
           <div>
-            <h4 className="text-sm font-bold text-zinc-955 dark:text-white uppercase tracking-wider mb-4">Resources</h4>
+            <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Resources</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
               <li>
                 <button 
@@ -53,7 +53,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-zinc-955 dark:text-white uppercase tracking-wider mb-4">Contact</h4>
+            <h4 className="text-sm font-bold text-zinc-950 dark:text-white uppercase tracking-wider mb-4">Contact</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-semibold">
               <li>
                 <a 

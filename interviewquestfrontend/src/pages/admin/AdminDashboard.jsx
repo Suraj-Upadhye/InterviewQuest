@@ -217,7 +217,7 @@ const AdminDashboard = () => {
                     </button>
                     <button
                       onClick={() => navigate(`/practice-quiz/${subj.code.toLowerCase()}`)}
-                      className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 text-[10px] font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent"
+                      className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-[10px] font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent"
                     >
                       Manage Quiz
                     </button>

@@ -857,7 +857,7 @@ Please follow these strict instructions:
               </div>
               <button
                 onClick={isMobileNavOpen ? () => setIsMobileNavOpen(false) : toggleSidebarCollapse}
-                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-955 dark:hover:text-white rounded-lg transition cursor-pointer"
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-950 dark:hover:text-white rounded-lg transition cursor-pointer"
                 title={isMobileNavOpen ? "Close Menu" : "Collapse Sidebar"}
               >
                 {isMobileNavOpen ? <X className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -921,8 +921,8 @@ Please follow these strict instructions:
                             className={`
                               flex-1 flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all duration-150 cursor-pointer
                               ${isActiveSubject
-                                ? 'text-zinc-955 dark:text-white bg-zinc-100 dark:bg-zinc-900/60'
-                                : 'text-zinc-650 dark:text-zinc-400 hover:bg-zinc-100/30 dark:hover:bg-zinc-900/20 hover:text-zinc-950 dark:hover:text-white'}
+                                ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-900/60'
+                                : 'text-zinc-650 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white'}
                             `}
                           >
                             <div className="flex items-center space-x-2.5">
@@ -1001,7 +1001,7 @@ Please follow these strict instructions:
                                   <>
                                     <button
                                       onClick={() => setExpandedChapters(prev => ({ ...prev, [chKey]: !prev[chKey] }))}
-                                      className="flex-1 flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-zinc-100/30 dark:hover:bg-zinc-900/30 text-[10px] font-bold tracking-tight text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition cursor-pointer text-left"
+                                      className="flex-1 flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-800 text-[10px] font-bold tracking-tight text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition cursor-pointer text-left"
                                     >
                                       <span className="truncate pr-1">{ch}</span>
                                       {isChapterExpanded ? (
@@ -1064,7 +1064,7 @@ Please follow these strict instructions:
                                               else if (e.key === 'Escape') setEditingTopicId(null);
                                             }}
                                             onBlur={() => handleCommitRenameTopic(t, inlineInputVal)}
-                                            className="w-full bg-white dark:bg-zinc-955 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-semibold focus:outline-none text-zinc-900 dark:text-white"
+                                            className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2 py-1 text-[11px] font-semibold focus:outline-none text-zinc-900 dark:text-white"
                                             autoFocus
                                           />
                                         ) : (
@@ -1075,7 +1075,7 @@ Please follow these strict instructions:
                                                 flex-1 text-left px-2.5 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-150 cursor-pointer truncate
                                                 ${isTopicSelected && isActiveSubject
                                                   ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border border-purple-500/20 shadow-sm'
-                                                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}
+                                                  : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800'}
                                               `}
                                             >
                                               {t.title}
@@ -1182,7 +1182,7 @@ Please follow these strict instructions:
                     }}
                     onBlur={() => handleCommitAddSubject(inlineInputVal)}
                     placeholder="New subject title..."
-                    className="w-full bg-white dark:bg-zinc-955 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2.5 py-1.5 text-xs font-bold focus:outline-none text-zinc-900 dark:text-white"
+                    className="w-full bg-white dark:bg-zinc-950 border border-purple-500 ring-1 ring-purple-500/20 rounded-md px-2.5 py-1.5 text-xs font-bold focus:outline-none text-zinc-900 dark:text-white"
                     autoFocus
                   />
                 </div>

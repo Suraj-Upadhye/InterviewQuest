@@ -199,7 +199,7 @@ const Auth = () => {
 
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-extrabold tracking-tight text-zinc-955 dark:text-white hover:opacity-80 transition">
+          <Link to="/" className="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white hover:opacity-80 transition">
             InterviewQuest
           </Link>
           <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
@@ -317,7 +317,7 @@ const Auth = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 flex justify-center items-center bg-zinc-955 dark:bg-white hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-xs font-bold rounded-xl shadow-sm transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full py-3 px-4 flex justify-center items-center bg-zinc-950 dark:bg-white hover:bg-zinc-850 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 text-xs font-bold rounded-xl shadow-sm transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -434,7 +434,7 @@ const Auth = () => {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="block w-full py-3.5 bg-white dark:bg-zinc-955 border border-zinc-205 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-600 text-zinc-905 dark:text-zinc-100 text-center tracking-[0.5em] text-lg font-bold placeholder-zinc-300 dark:placeholder-zinc-700 transition duration-200"
+                  className="block w-full py-3.5 bg-white dark:bg-zinc-950 border border-zinc-205 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-zinc-450 dark:focus:border-zinc-600 text-zinc-905 dark:text-zinc-100 text-center tracking-[0.5em] text-lg font-bold placeholder-zinc-300 dark:placeholder-zinc-700 transition duration-200"
                   required
                 />
               </div>

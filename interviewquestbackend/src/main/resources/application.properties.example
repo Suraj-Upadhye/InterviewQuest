@@ -20,13 +20,16 @@ logging.level.org.springframework.security=INFO
 interviewquest.app.jwtSecret=YOUR_BASE64_ENCODED_JWT_SECRET_KEY
 interviewquest.app.jwtExpirationMs=86400000
 
-# Spring Mail Configuration (Resend SMTP)
-spring.mail.host=smtp.resend.com
+# Spring Mail Configuration (Brevo SMTP)
+spring.mail.host=smtp-relay.brevo.com
 spring.mail.port=587
-spring.mail.username=resend
-spring.mail.password=YOUR_RESEND_API_KEY
-spring.mail.from=onboarding@resend.dev
+spring.mail.username=YOUR_BREVO_EMAIL_HERE
+spring.mail.password=YOUR_BREVO_SMTP_KEY_HERE
+spring.mail.from=YOUR_VERIFIED_SENDER_EMAIL_HERE
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 spring.mail.properties.mail.smtp.starttls.required=true
 
+
+# Allow local development email sending to fail without crashing requests
+interviewquest.mail.failOnError=false

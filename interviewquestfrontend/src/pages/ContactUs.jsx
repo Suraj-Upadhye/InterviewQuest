@@ -196,7 +196,7 @@ const ContactUs = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 text-xs font-bold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center gap-2 border-none hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-85"
+                      className="w-full py-3.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-md flex justify-center items-center gap-2 border-none hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-85"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

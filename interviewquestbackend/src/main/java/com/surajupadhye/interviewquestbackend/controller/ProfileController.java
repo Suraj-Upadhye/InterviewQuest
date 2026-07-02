@@ -43,14 +43,34 @@ public class ProfileController {
         }
     }
 
+    @PostMapping("/send-password-otp")
+    public ResponseEntity<?> sendPasswordChangeOtp(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        try {
+            profileService.sendPasswordChangeOtp(userDetails.getId());
+            return ResponseEntity.ok(new MessageResponse("Verification OTP sent to your email."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
     @PutMapping("/password")
     public ResponseEntity<?> changePassword(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody ChangePasswordRequest request) {
         try {
-            profileService.changePassword(userDetails.getId(), request.getCurrentPassword(), request.getNewPassword());
+            profileService.changePassword(userDetails.getId(), request.getOtp(), request.getNewPassword());
             return ResponseEntity.ok(new MessageResponse("Password changed successfully."));
         } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAccount(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        try {
+            profileService.deleteUserAccount(userDetails.getId());
+            return ResponseEntity.ok(new MessageResponse("Your account and all related data have been deleted successfully."));
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }

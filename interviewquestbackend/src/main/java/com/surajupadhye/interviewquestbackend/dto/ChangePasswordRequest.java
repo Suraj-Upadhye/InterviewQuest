@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ChangePasswordRequest {
-    @NotBlank(message = "Current password is required")
-    private String currentPassword;
+    @NotBlank(message = "Verification code (OTP) is required")
+    private String otp;
 
     @NotBlank(message = "New password is required")
     @Size(min = 6, max = 100, message = "New password must be between 6 and 100 characters")

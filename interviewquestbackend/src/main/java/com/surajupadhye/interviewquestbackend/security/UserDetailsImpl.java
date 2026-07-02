@@ -22,14 +22,16 @@ public class UserDetailsImpl implements UserDetails {
 
     private final GrantedAuthority authority;
     private final boolean isBlocked;
+    private final boolean isGoogleUser;
 
-    public UserDetailsImpl(Long id, String username, String email, String password, GrantedAuthority authority, boolean isBlocked) {
+    public UserDetailsImpl(Long id, String username, String email, String password, GrantedAuthority authority, boolean isBlocked, boolean isGoogleUser) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.authority = authority;
         this.isBlocked = isBlocked;
+        this.isGoogleUser = isGoogleUser;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -41,7 +43,8 @@ public class UserDetailsImpl implements UserDetails {
                 user.getEmail(),
                 user.getPassword(),
                 authority,
-                user.isBlocked());
+                user.isBlocked(),
+                user.getGoogleId() != null);
     }
 
     @Override
@@ -55,6 +58,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public boolean isGoogleUser() {
+        return isGoogleUser;
     }
 
     @Override

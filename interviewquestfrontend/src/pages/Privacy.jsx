@@ -16,7 +16,7 @@ const Privacy = () => {
               <Shield className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-955 dark:text-white">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-950 dark:text-white">
                 Privacy Policy
               </h1>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 font-bold uppercase mt-1">

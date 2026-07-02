@@ -551,11 +551,11 @@ const Assessments = () => {
                 <p className="text-[9px] text-zinc-400 font-extrabold uppercase">Total Questions</p>
                 <p className="text-xl font-bold mt-1 text-zinc-700 dark:text-zinc-300">{result.totalQuestions}</p>
               </div>
-              <div className="bg-white dark:bg-zinc-955 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl shadow-sm">
                 <p className="text-[9px] text-zinc-400 font-extrabold uppercase">Your Score</p>
                 <p className="text-xl font-bold mt-1 text-purple-600 dark:text-purple-400">{result.score}</p>
               </div>
-              <div className="bg-white dark:bg-zinc-955 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl shadow-sm">
+              <div className="bg-white dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl shadow-sm">
                 <p className="text-[9px] text-zinc-400 font-extrabold uppercase">Percentage</p>
                 <p className={`text-xl font-bold mt-1 ${result.percentage >= 70 ? 'text-emerald-500' : result.percentage >= 40 ? 'text-amber-500' : 'text-red-500'}`}>{result.percentage}%</p>
               </div>
@@ -900,7 +900,7 @@ const Assessments = () => {
                       <select
                         value={aiDifficulty}
                         onChange={(e) => setAiDifficulty(e.target.value)}
-                        className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none text-xs text-zinc-650"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none text-xs text-zinc-650"
                       >
                         <option value="EASY">EASY</option>
                         <option value="MEDIUM">MEDIUM</option>
@@ -912,7 +912,7 @@ const Assessments = () => {
                       <select
                         value={aiNumQuestions}
                         onChange={(e) => setAiNumQuestions(parseInt(e.target.value))}
-                        className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none text-xs text-zinc-655"
+                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none text-xs text-zinc-655"
                       >
                         <option value="5">5 Questions</option>
                         <option value="10">10 Questions</option>
@@ -1014,7 +1014,7 @@ const Assessments = () => {
                     <select
                       value={mcqDifficulty}
                       onChange={(e) => setMcqDifficulty(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-655"
+                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-655"
                     >
                       <option value="EASY">EASY</option>
                       <option value="MEDIUM">MEDIUM</option>
@@ -1030,7 +1030,7 @@ const Assessments = () => {
                     onChange={(e) => setMcqExplanation(e.target.value)}
                     placeholder="Provide context explaining the correct answer choice..."
                     rows="2"
-                    className="w-full bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 focus:outline-none focus:border-indigo-500 text-xs resize-none"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 focus:outline-none focus:border-indigo-500 text-xs resize-none"
                   />
                 </div>
 
@@ -1136,7 +1136,7 @@ const Assessments = () => {
                     <div className="pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between gap-4">
                       <button
                         onClick={() => navigate(`/practice-quiz/${subj.slug}`)}
-                        className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-955 text-xs font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent"
+                        className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent"
                       >
                         View Quizzes
                       </button>

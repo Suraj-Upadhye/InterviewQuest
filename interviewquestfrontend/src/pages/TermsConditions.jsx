@@ -16,7 +16,7 @@ const TermsConditions = () => {
               <Scale className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-955 dark:text-white">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-zinc-950 dark:text-white">
                 Terms & Conditions
               </h1>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 font-bold uppercase mt-1">
@@ -33,7 +33,7 @@ const TermsConditions = () => {
 
             {/* Section 1 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 1. Acceptance of Terms
               </h2>
               <p>
@@ -43,7 +43,7 @@ const TermsConditions = () => {
 
             {/* Section 2 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 2. User Account Responsibility
               </h2>
               <p>
@@ -58,7 +58,7 @@ const TermsConditions = () => {
 
             {/* Section 3 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 3. Acceptable Use Policy
               </h2>
               <p>
@@ -73,7 +73,7 @@ const TermsConditions = () => {
 
             {/* Section 4 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 4. Intellectual Property
               </h2>
               <p>
@@ -83,7 +83,7 @@ const TermsConditions = () => {
 
             {/* Section 5 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 5. Disclaimer of Warranties
               </h2>
               <p>
@@ -93,7 +93,7 @@ const TermsConditions = () => {
 
             {/* Section 6 */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-955 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-extrabold text-zinc-950 dark:text-white">
                 6. Modifications to Terms
               </h2>
               <p>
