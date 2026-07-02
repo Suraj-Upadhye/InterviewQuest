@@ -1,20 +1,20 @@
 # ============================================================
-# Stage 1: Build the Spring Boot JAR
+# Stage 1: Build the Spring Boot JAR using official Maven image
+# (No mvnw needed — Maven is pre-installed in the base image)
 # ============================================================
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 
 WORKDIR /app
 
-# Copy Maven wrapper and pom first (for dependency caching)
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
+# Copy pom.xml first for dependency caching
+COPY pom.xml ./
 
-# Make mvnw executable and download dependencies (cached layer)
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Download dependencies (cached layer — only re-runs if pom.xml changes)
+RUN mvn dependency:go-offline -B
 
 # Copy source code and build the JAR (skip tests for faster CI builds)
 COPY src ./src
-RUN ./mvnw package -DskipTests -B
+RUN mvn package -DskipTests -B
 
 # ============================================================
 # Stage 2: Run with lean JRE image (much smaller final image)
