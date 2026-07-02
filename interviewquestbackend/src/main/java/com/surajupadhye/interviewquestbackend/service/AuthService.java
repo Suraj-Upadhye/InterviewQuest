@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,9 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+
+    @Value("${interviewquest.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -237,7 +241,7 @@ public class AuthService {
         passwordResetTokenRepository.save(resetToken);
 
         // Send email
-        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
         emailService.sendPasswordResetEmail(email, resetLink);
     }
 
