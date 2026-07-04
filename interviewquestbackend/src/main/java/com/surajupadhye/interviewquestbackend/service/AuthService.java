@@ -227,16 +227,21 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Error: No user found with this email."));
 
-        // Delete existing reset tokens for this user
-        passwordResetTokenRepository.deleteByUser(user);
+        // Find existing reset token for this user, or create a new one
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByUser(user)
+                .orElse(null);
 
-        // Generate secure token
         String token = UUID.randomUUID().toString();
-        PasswordResetToken resetToken = PasswordResetToken.builder()
-                .user(user)
-                .token(token)
-                .expiryTime(LocalDateTime.now().plusMinutes(15)) // 15 minutes expiry
-                .build();
+        if (resetToken == null) {
+            resetToken = PasswordResetToken.builder()
+                    .user(user)
+                    .token(token)
+                    .expiryTime(LocalDateTime.now().plusMinutes(15)) // 15 minutes expiry
+                    .build();
+        } else {
+            resetToken.setToken(token);
+            resetToken.setExpiryTime(LocalDateTime.now().plusMinutes(15));
+        }
 
         passwordResetTokenRepository.save(resetToken);
 
