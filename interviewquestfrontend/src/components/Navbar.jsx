@@ -84,9 +84,14 @@ const Navbar = ({ variant = 'app', onSearchOpen }) => {
 
         {/* Logo */}
         <div
-          className="flex items-center space-x-2 cursor-pointer"
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition"
           onClick={() => navigate('/')}
         >
+          <img
+            src="/logo.png"
+            alt="InterviewQuest"
+            className="h-7 w-auto object-contain"
+          />
           <span className="text-xl sm:text-2xl font-black tracking-tight text-zinc-950 dark:text-white">
             InterviewQuest
           </span>

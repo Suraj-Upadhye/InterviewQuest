@@ -10,12 +10,19 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Left Brand Col */}
           <div className="md:col-span-1 space-y-4">
-            <span 
-              onClick={() => navigate('/')} 
-              className="font-black text-xl text-zinc-950 dark:text-white cursor-pointer"
+            <div
+              onClick={() => navigate('/')}
+              className="inline-flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition"
             >
-              InterviewQuest
-            </span>
+              <img
+                src="/logo.png"
+                alt="InterviewQuest"
+                className="h-7 w-auto object-contain"
+              />
+              <span className="font-black text-xl text-zinc-950 dark:text-white">
+                InterviewQuest
+              </span>
+            </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
               Elevating computer science study and interactive prep.
             </p>

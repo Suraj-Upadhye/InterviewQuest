@@ -199,10 +199,17 @@ const Auth = () => {
 
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white hover:opacity-80 transition">
-            InterviewQuest
+          <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition justify-center">
+            <img
+              src="/logo.png"
+              alt="InterviewQuest Logo"
+              className="h-10 w-auto object-contain"
+            />
+            <span className="text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
+              InterviewQuest
+            </span>
           </Link>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
             Fuel your technical placement preparation
           </p>
         </div>
@@ -489,8 +496,16 @@ const Auth = () => {
                 </div>
               </div>
 
-              {/* Google Button Container */}
-              <div className="flex justify-center w-full">
+              {/* Google Button Container with logo branding */}
+              <div className="flex flex-col items-center gap-3 w-full">
+                <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500">
+                  <img
+                    src="/logo.png"
+                    alt="InterviewQuest"
+                    className="h-5 w-auto object-contain opacity-70"
+                  />
+                  <span className="font-medium">InterviewQuest</span>
+                </div>
                 <div id="google-btn-container" className="w-full flex justify-center min-h-[44px]"></div>
               </div>
             </>

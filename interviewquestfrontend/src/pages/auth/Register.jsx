@@ -47,10 +47,17 @@ const Register = () => {
 
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
-            Get Started
-          </h2>
-          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <Link to="/" className="inline-flex items-center gap-3 hover:opacity-80 transition justify-center">
+            <img
+              src="/logo.png"
+              alt="InterviewQuest Logo"
+              className="h-10 w-auto object-contain"
+            />
+            <span className="text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
+              InterviewQuest
+            </span>
+          </Link>
+          <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
             Create an account to join InterviewQuest
           </p>
         </div>
