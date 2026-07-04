@@ -27,6 +27,7 @@ const ContactUs = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -35,16 +36,36 @@ const ContactUs = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError('');
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://formspree.io/f/mykqlvow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.ok) {
+        setIsSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setSubmitError(result?.error || 'Submission failed. Please try again.');
+      }
+    } catch (err) {
+      setSubmitError('Network error. Please check your connection and try again.');
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1200);
+    }
   };
 
   return (
@@ -132,7 +153,7 @@ const ContactUs = () => {
                       Thank you for reaching out. We will get back to you as soon as possible.
                     </p>
                     <button
-                      onClick={() => setIsSubmitted(false)}
+                      onClick={() => { setIsSubmitted(false); setSubmitError(''); }}
                       className="mt-4 px-6 py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold text-xs rounded-xl transition cursor-pointer border-none shadow-md"
                     >
                       Send Another Message
@@ -140,6 +161,11 @@ const ContactUs = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
+                    {submitError && (
+                      <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
+                        {submitError}
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Your Name</label>
