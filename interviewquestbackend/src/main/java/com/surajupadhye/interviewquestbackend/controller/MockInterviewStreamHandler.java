@@ -58,7 +58,7 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${interviewquest.gemini.live.model:models/gemini-2.0-flash-exp}")
+    @Value("${interviewquest.gemini.live.model:models/gemini-2.5-flash-native-audio-latest}")
     private String geminiLiveModel;
 
     // Map to link client WebSocket session to Gemini WebSocket session & session
@@ -120,7 +120,7 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
 
         // Connect to Gemini Live WebSocket API
         String geminiUri = String.format(
-                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=%s",
+                "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=%s",
                 userApiKey);
 
         // Clear userApiKey from scope instantly
@@ -128,18 +128,32 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
 
         StandardWebSocketClient geminiClient = new StandardWebSocketClient();
         try {
+            logger.info("Connecting to Gemini Live API with model: {}", geminiLiveModel);
             WebSocketSession geminiSession = geminiClient.execute(new WebSocketHandler() {
                 @Override
                 public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+                    logger.info("Gemini WebSocket connection established. Session ID: {}", session.getId());
+                    // Tomcat's default WS buffer (8,192 bytes) is far smaller than Gemini's
+                    // audio response chunks (~60KB+), causing an immediate 1009 close.
+                    // Raise both limits before anything is sent/received.
+                    session.setTextMessageSizeLimit(1024 * 1024); // 1MB
+                    session.setBinaryMessageSizeLimit(1024 * 1024); // 1MB
                     context.geminiSession = session;
                     // Send the setup block config as the first message
                     sendSetupMessage(session, systemPrompt);
+                    logger.info("Setup message sent to Gemini with model: {}", geminiLiveModel);
+
+                    // Kickoff the interview: Gemini will introduce itself and ask the first question
+                    sendTextMessageToGemini(session, "Hello! I am ready to start the mock interview. Please introduce yourself and ask the first question.");
+                    logger.info("Kickoff message sent to Gemini.");
                 }
 
                 @Override
                 public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
                     if (message instanceof TextMessage) {
                         String payload = ((TextMessage) message).getPayload();
+                        logger.debug("Gemini message received: {}",
+                                payload.length() > 200 ? payload.substring(0, 200) + "..." : payload);
                         // Forward JSON directly to client
                         if (clientSession.isOpen()) {
                             synchronized (clientSession) {
@@ -152,11 +166,33 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
 
                 @Override
                 public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-                    logger.error("Gemini transport error: {}", exception.getMessage());
+                    logger.error("Gemini transport error: {}", exception.getMessage(), exception);
+                    // Notify client about the error
+                    if (clientSession.isOpen()) {
+                        try {
+                            synchronized (clientSession) {
+                                clientSession.sendMessage(new TextMessage(
+                                        "{\"error\": \"Gemini transport error: " + exception.getMessage() + "\"}"));
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
                 }
 
                 @Override
                 public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+                    logger.warn("Gemini WebSocket connection closed. Code: {}, Reason: {}", closeStatus.getCode(),
+                            closeStatus.getReason());
+                    // Send close reason to client before cleanup
+                    if (clientSession.isOpen()) {
+                        try {
+                            synchronized (clientSession) {
+                                clientSession.sendMessage(new TextMessage("{\"error\": \"Gemini connection closed: "
+                                        + closeStatus.getReason() + " (code: " + closeStatus.getCode() + ")\"}"));
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
                     cleanupSession(clientSession.getId());
                 }
 
@@ -167,8 +203,10 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
             }, geminiUri).get();
 
         } catch (Exception e) {
-            logger.error("Failed to establish Gemini Live connection: {}", e.getMessage());
-            clientSession.close(CloseStatus.SERVER_ERROR.withReason("Failed to connect to AI server."));
+            logger.error("Failed to establish Gemini Live connection: {}", e.getMessage(), e);
+            if (clientSession.isOpen()) {
+                clientSession.close(CloseStatus.SERVER_ERROR.withReason("Failed to connect to AI server."));
+            }
         }
     }
 
@@ -176,8 +214,10 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
     protected void handleBinaryMessage(WebSocketSession clientSession, BinaryMessage message) throws Exception {
         SessionContext context = sessionMap.get(clientSession.getId());
         if (context != null && context.geminiSession != null && context.geminiSession.isOpen()) {
-            // Encode binary audio (rate=16000 pcm) to Base64
-            byte[] audioData = message.getPayload().array();
+            // Safely extract binary audio (rate=16000 pcm) from ByteBuffer without using direct array()
+            java.nio.ByteBuffer payloadBuffer = message.getPayload();
+            byte[] audioData = new byte[payloadBuffer.remaining()];
+            payloadBuffer.get(audioData);
             String base64Audio = Base64.getEncoder().encodeToString(audioData);
 
             // Construct Gemini realtime media input frame
@@ -190,7 +230,15 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                     "realtimeInput", realtimeInput);
 
             synchronized (context.geminiSession) {
-                context.geminiSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
+                if (context.geminiSession.isOpen()) {
+                    try {
+                        context.geminiSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
+                    } catch (IllegalStateException e) {
+                        // Session closed concurrently (e.g. Gemini rejected/ended the turn) — safe to
+                        // ignore
+                        logger.debug("Skipped audio chunk, Gemini session no longer writable: {}", e.getMessage());
+                    }
+                }
             }
         }
     }
@@ -214,12 +262,29 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
     private void handleGeminiResponse(SessionContext context, String payload) {
         try {
             JsonNode root = objectMapper.readTree(payload);
-            JsonNode parts = root.path("serverContent").path("modelTurn").path("parts");
 
-            // Extract transcripts
-            for (JsonNode part : parts) {
-                if (part.has("text")) {
-                    context.textAccumulator.append(part.get("text").asText());
+            // 1. Check for root level outputTranscription
+            if (root.has("outputTranscription")) {
+                JsonNode textNode = root.path("outputTranscription").path("text");
+                if (!textNode.isMissingNode() && textNode.isTextual()) {
+                    context.textAccumulator.append(textNode.asText());
+                }
+            }
+            // 2. Check for nested serverContent.outputTranscription
+            else if (root.has("serverContent") && root.path("serverContent").has("outputTranscription")) {
+                JsonNode textNode = root.path("serverContent").path("outputTranscription").path("text");
+                if (!textNode.isMissingNode() && textNode.isTextual()) {
+                    context.textAccumulator.append(textNode.asText());
+                }
+            }
+
+            // 3. Fallback/Legacy text extraction from serverContent modelTurn parts
+            JsonNode parts = root.path("serverContent").path("modelTurn").path("parts");
+            if (!parts.isMissingNode() && parts.isArray()) {
+                for (JsonNode part : parts) {
+                    if (part.has("text")) {
+                        context.textAccumulator.append(part.get("text").asText());
+                    }
                 }
             }
 
@@ -244,10 +309,21 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                 // Intercept and parse final evaluation text response
                 if (context.isEvaluated) {
                     String fullText = context.textAccumulator.toString();
-                    Pattern pattern = Pattern.compile("<evaluation>(.*?)</evaluation>", Pattern.DOTALL);
+                    Pattern pattern = Pattern.compile("<evaluation>(.*?)</evaluation>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
                     Matcher matcher = pattern.matcher(fullText);
+                    String jsonString = null;
                     if (matcher.find()) {
-                        String jsonString = matcher.group(1).trim();
+                        jsonString = matcher.group(1).trim();
+                    } else {
+                        // Fallback: try parsing JSON directly if turn is complete and we couldn't match the tags
+                        int start = fullText.indexOf('{');
+                        int end = fullText.lastIndexOf('}');
+                        if (start != -1 && end > start) {
+                            jsonString = fullText.substring(start, end + 1).trim();
+                        }
+                    }
+
+                    if (jsonString != null) {
                         saveScorecardToDatabase(context, jsonString);
                         // Notify client the session has finished
                         synchronized (context.clientSession) {
@@ -361,7 +437,12 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
         Map<String, Object> setup = Map.of(
                 "model", geminiLiveModel,
                 "generationConfig", generationConfig,
-                "systemInstruction", systemInstruction);
+                "systemInstruction", systemInstruction,
+                // Audio-only output means Gemini never fills modelTurn.parts[].text.
+                // This asks Gemini to also emit a spoken-word transcript as
+                // serverContent.outputTranscription.text, which we need for both
+                // the frontend chat log and the backend scorecard evaluation.
+                "outputAudioTranscription", Map.of());
         Map<String, Object> payload = Map.of("setup", setup);
 
         synchronized (session) {
@@ -415,10 +496,12 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
             String[] pairs = query.split("&");
             for (String pair : pairs) {
                 String[] kv = pair.split("=", 2);
-                if (kv.length == 2) {
-                    params.put(kv[0], kv[1]);
-                } else if (kv.length == 1) {
-                    params.put(kv[0], "");
+                try {
+                    String key = java.net.URLDecoder.decode(kv[0], java.nio.charset.StandardCharsets.UTF_8);
+                    String value = kv.length == 2 ? java.net.URLDecoder.decode(kv[1], java.nio.charset.StandardCharsets.UTF_8) : "";
+                    params.put(key, value);
+                } catch (Exception e) {
+                    logger.warn("Failed to URL decode query param: {}", pair, e);
                 }
             }
         }

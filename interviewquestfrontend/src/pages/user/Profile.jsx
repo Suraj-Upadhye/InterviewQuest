@@ -49,6 +49,15 @@ const Profile = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // Gemini BYOK states
+  const [geminiKey, setGeminiKey] = useState('');
+  const [hasGeminiKey, setHasGeminiKey] = useState(false);
+  const [keyLoading, setKeyLoading] = useState(false);
+  const [keySaving, setKeySaving] = useState(false);
+  const [keySuccess, setKeySuccess] = useState('');
+  const [keyError, setKeyError] = useState('');
+  const [showGeminiKey, setShowGeminiKey] = useState(false);
+
   const getResumePdfUrl = (url) => {
     if (!url) return '';
     return url.toLowerCase().endsWith('.pdf') ? url : `${url}.pdf`;
@@ -65,8 +74,58 @@ const Profile = () => {
   useEffect(() => {
     if (!isAdmin) {
       fetchResume();
+      fetchApiKeyStatus();
     }
   }, [isAdmin]);
+
+  const fetchApiKeyStatus = async () => {
+    try {
+      setKeyLoading(true);
+      const response = await API.get('/api/users/profile/api-key/status');
+      setHasGeminiKey(response.data.hasKey);
+    } catch (err) {
+      console.error('Failed to fetch api key status', err);
+    } finally {
+      setKeyLoading(false);
+    }
+  };
+
+  const handleSaveApiKey = async (e) => {
+    e.preventDefault();
+    if (!geminiKey.trim()) {
+      setKeyError('API Key cannot be empty.');
+      return;
+    }
+    try {
+      setKeySaving(true);
+      setKeyError('');
+      setKeySuccess('');
+      const response = await API.post('/api/users/profile/api-key', { apiKey: geminiKey.trim() });
+      setHasGeminiKey(true);
+      setGeminiKey('');
+      setKeySuccess(response.data.message || 'API Key saved and verified successfully.');
+    } catch (err) {
+      setKeyError(err.response?.data?.error || 'Failed to save and validate API Key.');
+    } finally {
+      setKeySaving(false);
+    }
+  };
+
+  const handleDeleteApiKey = async () => {
+    if (!window.confirm('Are you sure you want to delete your registered Gemini API Key? Mock interviews and AI generation features will no longer function.')) return;
+    try {
+      setKeySaving(true);
+      setKeyError('');
+      setKeySuccess('');
+      await API.delete('/api/users/profile/api-key');
+      setHasGeminiKey(false);
+      setKeySuccess('API Key deleted successfully.');
+    } catch (err) {
+      setKeyError('Failed to delete API Key.');
+    } finally {
+      setKeySaving(false);
+    }
+  };
 
   // OTP timer effect
   useEffect(() => {
@@ -442,6 +501,94 @@ const Profile = () => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Gemini API Key Configuration Card */}
+                <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm">
+                  <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 flex items-center mb-1">
+                    <KeyRound className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                    Gemini API Configuration (BYOK)
+                  </h3>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed mb-5">
+                    Configure your personal Gemini API Key. Keys are encrypted at-rest using AES-256-GCM and never exposed to the client browser.
+                  </p>
+
+                  {keySuccess && (
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{keySuccess}</span>
+                    </div>
+                  )}
+                  {keyError && (
+                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>{keyError}</span>
+                    </div>
+                  )}
+
+                  {keyLoading ? (
+                    <div className="flex items-center justify-center py-6 text-zinc-500">
+                      <Loader2 className="w-6 h-6 animate-spin text-zinc-400 mb-2" />
+                    </div>
+                  ) : hasGeminiKey ? (
+                    <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="flex items-center space-x-3 w-full sm:w-auto">
+                        <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-500/20 shrink-0">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-zinc-900 dark:text-zinc-300 text-[11px]">API Key Active</h4>
+                          <p className="text-[9px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Encrypted at-rest. Ready for real-time interviews.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleDeleteApiKey}
+                        disabled={keySaving}
+                        className="w-full sm:w-auto flex items-center justify-center space-x-1 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-3.5 py-2.5 rounded-xl transition text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        <span>Delete Key</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSaveApiKey} className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Gemini API Key</label>
+                        <div className="relative">
+                          <input
+                            type={showGeminiKey ? 'text' : 'password'}
+                            value={geminiKey}
+                            onChange={(e) => setGeminiKey(e.target.value)}
+                            placeholder="AIzaSy..."
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-4 pr-11 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100 font-mono"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowGeminiKey(!showGeminiKey)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 bg-transparent border-none cursor-pointer"
+                          >
+                            {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 mt-1.5 leading-relaxed">
+                          Get a free API key from the <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-semibold">Google AI Studio</a>.
+                        </p>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={keySaving}
+                        className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
+                      >
+                        {keySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                          <><Save className="w-3.5 h-3.5 mr-1.5" /> Save & Verify Key</>
+                        )}
+                      </button>
+                    </form>
+                  )}
                 </div>
 
                 {/* Change Password Form (Full Width for Users) */}

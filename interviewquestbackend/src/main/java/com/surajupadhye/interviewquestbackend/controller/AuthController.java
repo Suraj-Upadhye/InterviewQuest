@@ -132,8 +132,9 @@ public class AuthController {
     public ResponseEntity<?> logoutUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         if (userDetails != null) {
             refreshTokenService.deleteByUserId(userDetails.getId());
-            return ResponseEntity.ok(new MessageResponse("Log out successful!"));
+        } else {
+            logger.info("Logout request received with no active or expired session. Cleaning up client session.");
         }
-        return ResponseEntity.badRequest().body(new MessageResponse("No active user session."));
+        return ResponseEntity.ok(new MessageResponse("Log out successful!"));
     }
 }
