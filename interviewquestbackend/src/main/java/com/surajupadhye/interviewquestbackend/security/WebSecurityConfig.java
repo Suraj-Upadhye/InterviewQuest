@@ -68,6 +68,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/questions/practice").permitAll()
                 // Health check for Render + UptimeRobot (no auth required)
                 .requestMatchers("/api/health").permitAll()
+                // WebSocket proxy stream endpoint (auth is handled in the handler via token query param)
+                .requestMatchers("/api/v1/mock-interview/stream").permitAll()
                 // Swagger Documentation endpoints
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 // Admin specific paths

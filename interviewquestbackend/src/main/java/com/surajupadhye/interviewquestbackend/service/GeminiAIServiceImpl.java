@@ -31,13 +31,13 @@ public class GeminiAIServiceImpl implements AIService {
     private String systemGeminiModel;
 
     @Override
-    public String generateContent(String prompt) {
-        return callGeminiApi(List.of(createChatMessage("user", prompt)), null, false);
+    public String generateContent(String prompt, String customApiKey) {
+        return callGeminiApi(List.of(createChatMessage("user", prompt)), customApiKey, false);
     }
 
     @Override
-    public String generateJson(String prompt) {
-        return callGeminiApi(List.of(createChatMessage("user", prompt)), null, true);
+    public String generateJson(String prompt, String customApiKey) {
+        return callGeminiApi(List.of(createChatMessage("user", prompt)), customApiKey, true);
     }
 
     @Override

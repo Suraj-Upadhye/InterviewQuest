@@ -7,6 +7,7 @@ import com.surajupadhye.interviewquestbackend.repository.AssessmentAttemptReposi
 import com.surajupadhye.interviewquestbackend.repository.UserRepository;
 import com.surajupadhye.interviewquestbackend.security.UserDetailsImpl;
 import com.surajupadhye.interviewquestbackend.service.QuizService;
+import com.surajupadhye.interviewquestbackend.service.UserApiKeyService;
 import jakarta.validation.Valid;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,6 +29,9 @@ public class QuizController {
 
     @Autowired
     private QuizService quizService;
+
+    @Autowired
+    private UserApiKeyService apiKeyService;
 
     @Autowired
     private UserRepository userRepository;
@@ -134,8 +138,11 @@ public class QuizController {
 
     @PostMapping("/admin/quizzes/generate-ai")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Quiz> generateQuizWithAI(@Valid @RequestBody QuizCreateRequest request) {
-        return new ResponseEntity<>(quizService.generateQuizWithAI(request), HttpStatus.CREATED);
+    public ResponseEntity<Quiz> generateQuizWithAI(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody QuizCreateRequest request) {
+        String apiKey = apiKeyService.getDecryptedKey(userDetails.getId());
+        return new ResponseEntity<>(quizService.generateQuizWithAI(request, apiKey), HttpStatus.CREATED);
     }
 
     @PutMapping("/admin/quizzes/{id}")

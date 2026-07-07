@@ -3,10 +3,13 @@ package com.surajupadhye.interviewquestbackend.controller;
 import com.surajupadhye.interviewquestbackend.entity.Subject;
 import com.surajupadhye.interviewquestbackend.entity.SyllabusTopic;
 import com.surajupadhye.interviewquestbackend.service.SubjectService;
+import com.surajupadhye.interviewquestbackend.service.UserApiKeyService;
+import com.surajupadhye.interviewquestbackend.security.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -16,6 +19,9 @@ public class SubjectController {
 
     @Autowired
     private SubjectService subjectService;
+
+    @Autowired
+    private UserApiKeyService apiKeyService;
 
     // ==========================================
     // PUBLIC ENDPOINTS
@@ -108,6 +114,7 @@ public class SubjectController {
 
     @PostMapping("/api/admin/subjects/topics/generate-ai")
     public ResponseEntity<java.util.Map<String, String>> generateTopicContent(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody java.util.Map<String, String> request) {
         String prompt = request.get("prompt");
         if (prompt == null || prompt.isBlank()) {
@@ -116,7 +123,16 @@ public class SubjectController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        String generatedContent = subjectService.generateTopicContent(prompt);
+        String userApiKey;
+        try {
+            userApiKey = apiKeyService.getDecryptedKey(userDetails.getId());
+        } catch (Exception e) {
+            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("error", "Gemini API key is missing. Register key in your Profile first.");
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        String generatedContent = subjectService.generateTopicContent(prompt, userApiKey);
         java.util.Map<String, String> successResponse = new java.util.HashMap<>();
         successResponse.put("content", generatedContent);
         return ResponseEntity.ok(successResponse);

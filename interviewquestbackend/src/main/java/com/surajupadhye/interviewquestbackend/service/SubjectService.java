@@ -20,5 +20,5 @@ public interface SubjectService {
     void deleteTopic(Long id);
     void renameChapter(Long subjectId, String oldName, String newName);
     void deleteChapter(Long subjectId, String chapterName);
-    String generateTopicContent(String prompt);
+    String generateTopicContent(String prompt, String userApiKey);
 }

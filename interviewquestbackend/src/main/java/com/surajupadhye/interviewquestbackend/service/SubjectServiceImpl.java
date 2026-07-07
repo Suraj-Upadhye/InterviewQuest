@@ -142,7 +142,7 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
-    public String generateTopicContent(String prompt) {
-        return aiService.generateContent(prompt);
+    public String generateTopicContent(String prompt, String userApiKey) {
+        return aiService.generateContent(prompt, userApiKey);
     }
 }

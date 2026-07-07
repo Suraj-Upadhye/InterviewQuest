@@ -14,7 +14,7 @@ public interface QuizService {
     Question addQuestionToQuiz(Long quizId, Question question);
     Question updateQuestionInQuiz(Long questionId, Question questionDetails);
     void deleteQuestionFromQuiz(Long questionId);
-    Quiz generateQuizWithAI(QuizCreateRequest request);
+    Quiz generateQuizWithAI(QuizCreateRequest request, String userApiKey);
 
     // User operations
     List<Quiz> getQuizzesBySubject(String subjectSlug);

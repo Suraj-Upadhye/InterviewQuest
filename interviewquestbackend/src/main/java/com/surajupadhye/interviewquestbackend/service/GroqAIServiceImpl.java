@@ -33,13 +33,13 @@ public class GroqAIServiceImpl implements AIService {
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
     @Override
-    public String generateContent(String prompt) {
-        return callGroqApi(List.of(createChatMessage("user", prompt)), null, false);
+    public String generateContent(String prompt, String customApiKey) {
+        return callGroqApi(List.of(createChatMessage("user", prompt)), customApiKey, false);
     }
 
     @Override
-    public String generateJson(String prompt) {
-        return callGroqApi(List.of(createChatMessage("user", prompt)), null, true);
+    public String generateJson(String prompt, String customApiKey) {
+        return callGroqApi(List.of(createChatMessage("user", prompt)), customApiKey, true);
     }
 
     @Override

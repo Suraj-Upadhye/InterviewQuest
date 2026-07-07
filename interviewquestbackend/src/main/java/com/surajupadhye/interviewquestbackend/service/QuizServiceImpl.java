@@ -113,7 +113,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public Quiz generateQuizWithAI(QuizCreateRequest request) {
+    public Quiz generateQuizWithAI(QuizCreateRequest request, String userApiKey) {
         // First create the Quiz shell
         Quiz quiz = createQuiz(request);
 
@@ -144,7 +144,7 @@ public class QuizServiceImpl implements QuizService {
         );
 
         try {
-            String rawJsonContent = aiService.generateJson(prompt);
+            String rawJsonContent = aiService.generateJson(prompt, userApiKey);
 
             // Sometime AI wraps response inside a root key or returns a list directly. Let's parse it safely:
             JsonNode quizNode = objectMapper.readTree(rawJsonContent);
