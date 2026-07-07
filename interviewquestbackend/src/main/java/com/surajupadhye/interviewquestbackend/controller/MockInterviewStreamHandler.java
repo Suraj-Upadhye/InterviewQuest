@@ -112,6 +112,10 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
             return;
         }
 
+        // Raise buffer limits on the client session to handle large audio chunks
+        clientSession.setTextMessageSizeLimit(1024 * 1024); // 1MB
+        clientSession.setBinaryMessageSizeLimit(1024 * 1024); // 1MB
+
         SessionContext context = new SessionContext(clientSession, userId, interviewType, subjectId);
         sessionMap.put(clientSession.getId(), context);
 
@@ -126,7 +130,14 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
         // Clear userApiKey from scope instantly
         userApiKey = null;
 
-        StandardWebSocketClient geminiClient = new StandardWebSocketClient();
+        // Configure Tomcat's OUTBOUND WebSocket client container buffer sizes.
+        // ServletServerContainerFactoryBean only affects the server-side container,
+        // not the client that connects outbound to Gemini.
+        jakarta.websocket.WebSocketContainer container = jakarta.websocket.ContainerProvider.getWebSocketContainer();
+        container.setDefaultMaxTextMessageBufferSize(1024 * 1024);   // 1MB
+        container.setDefaultMaxBinaryMessageBufferSize(1024 * 1024); // 1MB
+        StandardWebSocketClient geminiClient = new StandardWebSocketClient(container);
+
         try {
             logger.info("Connecting to Gemini Live API with model: {}", geminiLiveModel);
             WebSocketSession geminiSession = geminiClient.execute(new WebSocketHandler() {
@@ -142,18 +153,37 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                     // Send the setup block config as the first message
                     sendSetupMessage(session, systemPrompt);
                     logger.info("Setup message sent to Gemini with model: {}", geminiLiveModel);
-
-                    // Kickoff the interview: Gemini will introduce itself and ask the first question
-                    sendTextMessageToGemini(session, "Hello! I am ready to start the mock interview. Please introduce yourself and ask the first question.");
-                    logger.info("Kickoff message sent to Gemini.");
                 }
 
                 @Override
                 public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+                    String payload = null;
                     if (message instanceof TextMessage) {
-                        String payload = ((TextMessage) message).getPayload();
-                        logger.debug("Gemini message received: {}",
-                                payload.length() > 200 ? payload.substring(0, 200) + "..." : payload);
+                        payload = ((TextMessage) message).getPayload();
+                    } else if (message instanceof BinaryMessage) {
+                        java.nio.ByteBuffer byteBuffer = ((BinaryMessage) message).getPayload();
+                        byte[] bytes = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(bytes);
+                        payload = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+                    }
+
+                    if (payload != null) {
+                        logger.info("Gemini message received (len={}): {}",
+                                payload.length(),
+                                payload.length() > 300 ? payload.substring(0, 300) + "..." : payload);
+
+                        // Parse to check for setupComplete before sending kickoff message
+                        try {
+                            JsonNode root = objectMapper.readTree(payload);
+                            if (root.has("setupComplete")) {
+                                logger.info("Gemini setupComplete received. Initializing kickoff message...");
+                                sendTextMessageToGemini(session, "Hello! I am ready to start the mock interview. Please introduce yourself and ask the first question.");
+                                logger.info("Kickoff message sent to Gemini.");
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error parsing setupComplete event: {}", e.getMessage());
+                        }
+
                         // Forward JSON directly to client
                         if (clientSession.isOpen()) {
                             synchronized (clientSession) {
@@ -161,6 +191,8 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                             }
                         }
                         handleGeminiResponse(context, payload);
+                    } else {
+                        logger.warn("Gemini sent unknown message type: {}", message.getClass().getSimpleName());
                     }
                 }
 
@@ -200,7 +232,7 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                 public boolean supportsPartialMessages() {
                     return false;
                 }
-            }, geminiUri).get();
+            }, new org.springframework.web.socket.WebSocketHttpHeaders(), new URI(geminiUri)).get();
 
         } catch (Exception e) {
             logger.error("Failed to establish Gemini Live connection: {}", e.getMessage(), e);
@@ -255,6 +287,7 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                 String textAnswer = requestNode.get("codeAnswer").asText();
                 sendTextMessageToGemini(context.geminiSession,
                         "I have written my Coding/Design solution in the editor:\n\n" + textAnswer);
+                context.textAccumulator.append("\nCandidate (Coding Canvas Submission): ").append(textAnswer);
             }
         }
     }
@@ -263,28 +296,29 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
         try {
             JsonNode root = objectMapper.readTree(payload);
 
-            // 1. Check for root level outputTranscription
-            if (root.has("outputTranscription")) {
-                JsonNode textNode = root.path("outputTranscription").path("text");
+            // 1. Capture user input transcription (Candidate speech)
+            if (root.has("inputTranscription")) {
+                JsonNode textNode = root.path("inputTranscription").path("text");
                 if (!textNode.isMissingNode() && textNode.isTextual()) {
-                    context.textAccumulator.append(textNode.asText());
+                    context.textAccumulator.append("\nCandidate: ").append(textNode.asText());
                 }
-            }
-            // 2. Check for nested serverContent.outputTranscription
-            else if (root.has("serverContent") && root.path("serverContent").has("outputTranscription")) {
-                JsonNode textNode = root.path("serverContent").path("outputTranscription").path("text");
+            } else if (root.has("serverContent") && root.path("serverContent").has("inputTranscription")) {
+                JsonNode textNode = root.path("serverContent").path("inputTranscription").path("text");
                 if (!textNode.isMissingNode() && textNode.isTextual()) {
-                    context.textAccumulator.append(textNode.asText());
+                    context.textAccumulator.append("\nCandidate: ").append(textNode.asText());
                 }
             }
 
-            // 3. Fallback/Legacy text extraction from serverContent modelTurn parts
-            JsonNode parts = root.path("serverContent").path("modelTurn").path("parts");
-            if (!parts.isMissingNode() && parts.isArray()) {
-                for (JsonNode part : parts) {
-                    if (part.has("text")) {
-                        context.textAccumulator.append(part.get("text").asText());
-                    }
+            // 2. Capture model output transcription (Interviewer speech)
+            if (root.has("outputTranscription")) {
+                JsonNode textNode = root.path("outputTranscription").path("text");
+                if (!textNode.isMissingNode() && textNode.isTextual()) {
+                    context.textAccumulator.append("\nInterviewer: ").append(textNode.asText());
+                }
+            } else if (root.has("serverContent") && root.path("serverContent").has("outputTranscription")) {
+                JsonNode textNode = root.path("serverContent").path("outputTranscription").path("text");
+                if (!textNode.isMissingNode() && textNode.isTextual()) {
+                    context.textAccumulator.append("\nInterviewer: ").append(textNode.asText());
                 }
             }
 
@@ -445,8 +479,11 @@ public class MockInterviewStreamHandler extends AbstractWebSocketHandler {
                 "outputAudioTranscription", Map.of());
         Map<String, Object> payload = Map.of("setup", setup);
 
+        String jsonPayload = objectMapper.writeValueAsString(payload);
+        logger.info("Sending setup message to Gemini (len={}): {}", jsonPayload.length(),
+                jsonPayload.length() > 500 ? jsonPayload.substring(0, 500) + "..." : jsonPayload);
         synchronized (session) {
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
+            session.sendMessage(new TextMessage(jsonPayload));
         }
     }
 

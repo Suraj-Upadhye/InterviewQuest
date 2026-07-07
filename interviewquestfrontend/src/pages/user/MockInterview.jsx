@@ -190,42 +190,51 @@ const MockInterview = () => {
             return;
           }
 
-          // Parse audio transcription if present
-          let textTranscript = '';
+          // 1. Parse interviewer output transcription if present
+          let assistantTranscript = '';
           if (data.outputTranscription?.text) {
-            textTranscript = data.outputTranscription.text;
+            assistantTranscript = data.outputTranscription.text;
           } else if (data.serverContent?.outputTranscription?.text) {
-            textTranscript = data.serverContent.outputTranscription.text;
+            assistantTranscript = data.serverContent.outputTranscription.text;
           }
 
-          if (textTranscript) {
+          if (assistantTranscript) {
             setIsSpeaking(true);
             setTranscript(prev => {
               const last = prev[prev.length - 1];
               if (last && last.role === 'assistant') {
-                return [...prev.slice(0, -1), { role: 'assistant', text: last.text + textTranscript }];
+                return [...prev.slice(0, -1), { role: 'assistant', text: last.text + assistantTranscript }];
               } else {
-                return [...prev, { role: 'assistant', text: textTranscript }];
+                return [...prev, { role: 'assistant', text: assistantTranscript }];
               }
             });
           }
 
-          // Dynamic text/audio packet extraction
+          // 2. Parse candidate input transcription if present
+          let userTranscript = '';
+          if (data.inputTranscription?.text) {
+            userTranscript = data.inputTranscription.text;
+          } else if (data.serverContent?.inputTranscription?.text) {
+            userTranscript = data.serverContent.inputTranscription.text;
+          }
+
+          if (userTranscript) {
+            setTranscript(prev => {
+              const last = prev[prev.length - 1];
+              if (last && last.role === 'user') {
+                return [...prev.slice(0, -1), { role: 'user', text: last.text + userTranscript }];
+              } else {
+                return [...prev, { role: 'user', text: userTranscript }];
+              }
+            });
+          }
+
+          // 3. Extract binary audio packets (ignore part.text to hide internal thinking/reasoning steps)
           if (data.serverContent?.modelTurn?.parts) {
             const parts = data.serverContent.modelTurn.parts;
             setIsSpeaking(true);
 
             for (const part of parts) {
-              if (part.text) {
-                setTranscript(prev => {
-                  const last = prev[prev.length - 1];
-                  if (last && last.role === 'assistant') {
-                    return [...prev.slice(0, -1), { role: 'assistant', text: last.text + part.text }];
-                  } else {
-                    return [...prev, { role: 'assistant', text: part.text }];
-                  }
-                });
-              }
               if (part.inlineData && part.inlineData.mimeType.startsWith('audio/pcm')) {
                 playAudioPacket(part.inlineData.data);
               }
