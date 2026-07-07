@@ -34,13 +34,8 @@ public class SubjectServiceImpl implements SubjectService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${interviewquest.groq.apiKey:}")
-    private String systemGroqApiKey;
-
-    @Value("${interviewquest.groq.model:llama-3.3-70b-versatile}")
-    private String systemGroqModel;
-
-    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+    @Autowired
+    private AIService aiService;
 
     @Override
     public List<Subject> getAllSubjects() {
@@ -148,49 +143,6 @@ public class SubjectServiceImpl implements SubjectService {
 
     @Override
     public String generateTopicContent(String prompt) {
-        if (systemGroqApiKey == null || systemGroqApiKey.isBlank()) {
-            throw new IllegalArgumentException("Error: Groq API Key is missing in application configuration.");
-        }
-
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-
-            List<Map<String, String>> messages = new ArrayList<>();
-            Map<String, String> userMessage = new HashMap<>();
-            userMessage.put("role", "user");
-            userMessage.put("content", prompt);
-            messages.add(userMessage);
-
-            Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("model", systemGroqModel);
-            requestBodyMap.put("messages", messages);
-            requestBodyMap.put("temperature", 0.7);
-
-            String requestBodyJson = objectMapper.writeValueAsString(requestBodyMap);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GROQ_API_URL))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + systemGroqApiKey)
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBodyJson))
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                throw new RuntimeException("Error from Groq API: Status " + response.statusCode() + " - " + response.body());
-            }
-
-            JsonNode rootNode = objectMapper.readTree(response.body());
-            String content = rootNode.path("choices").path(0).path("message").path("content").asText();
-            if (content != null) {
-                // Clean up common AI Mermaid syntax errors: replacement of '-->|label|>' with '-->|label|'
-                content = content.replaceAll("(-->|-\\.->|==>|->)\\s*\\|\\s*([^|]+)\\s*\\|\\s*>", "$1|$2|");
-            }
-            return content;
-
-        } catch (Exception e) {
-            throw new RuntimeException("AI Content Generation failed: " + e.getMessage(), e);
-        }
+        return aiService.generateContent(prompt);
     }
 }

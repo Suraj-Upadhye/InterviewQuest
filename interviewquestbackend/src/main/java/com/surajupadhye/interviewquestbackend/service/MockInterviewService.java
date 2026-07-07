@@ -30,13 +30,8 @@ public class MockInterviewService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${interviewquest.groq.apiKey:}")
-    private String systemGroqApiKey;
-
-    private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-
-    @Value("${interviewquest.groq.model:llama-3.3-70b-versatile}")
-    private String systemGroqModel;
+    @Autowired
+    private AIService aiService;
 
     public List<MockInterview> getInterviewsByUser(Long userId) {
         return interviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -82,8 +77,8 @@ public class MockInterviewService {
 
         interview.getConversation().add(systemMessage);
 
-        // Fetch first question from Groq
-        String firstQuestion = callGroqApi(interview.getConversation(), userApiKey);
+        // Fetch first question from AI
+        String firstQuestion = aiService.chat(interview.getConversation(), userApiKey);
 
         MockInterview.ChatMessage assistantMessage = MockInterview.ChatMessage.builder()
                 .role("assistant")
@@ -109,7 +104,7 @@ public class MockInterviewService {
         interview.getConversation().add(userMessage);
 
         // Get next question/response from AI
-        String aiResponse = callGroqApi(interview.getConversation(), userApiKey);
+        String aiResponse = aiService.chat(interview.getConversation(), userApiKey);
 
         MockInterview.ChatMessage assistantMessage = MockInterview.ChatMessage.builder()
                 .role("assistant")
@@ -147,7 +142,7 @@ public class MockInterviewService {
                 .timestamp(LocalDateTime.now())
                 .build());
 
-        String evaluationResult = callGroqApi(evalConversation, userApiKey);
+        String evaluationResult = aiService.chat(evalConversation, userApiKey);
 
         MockInterview.ChatMessage feedbackMessage = MockInterview.ChatMessage.builder()
                 .role("assistant")
@@ -159,49 +154,5 @@ public class MockInterviewService {
         return interviewRepository.save(interview);
     }
 
-    private String callGroqApi(List<MockInterview.ChatMessage> messages, String userApiKey) {
-        String apiKey = (userApiKey != null && !userApiKey.isBlank()) ? userApiKey : systemGroqApiKey;
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("Error: Groq API Key is missing. Please set it in application properties or provide your own key.");
-        }
 
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-
-            // Construct payload manually with ObjectMapper to avoid complex libraries
-            List<Map<String, String>> messagePayloads = new ArrayList<>();
-            for (MockInterview.ChatMessage msg : messages) {
-                Map<String, String> payload = new HashMap<>();
-                payload.put("role", msg.getRole());
-                payload.put("content", msg.getContent());
-                messagePayloads.add(payload);
-            }
-
-            Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("model", systemGroqModel);
-            requestBodyMap.put("messages", messagePayloads);
-            requestBodyMap.put("temperature", 0.7);
-
-            String requestBodyJson = objectMapper.writeValueAsString(requestBodyMap);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GROQ_API_URL))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + apiKey)
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBodyJson))
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                throw new RuntimeException("Error from Groq API: Status " + response.statusCode() + " - " + response.body());
-            }
-
-            JsonNode rootNode = objectMapper.readTree(response.body());
-            return rootNode.path("choices").path(0).path("message").path("content").asText();
-
-        } catch (Exception e) {
-            throw new RuntimeException("AI Mock Interview request failed: " + e.getMessage(), e);
-        }
-    }
 }

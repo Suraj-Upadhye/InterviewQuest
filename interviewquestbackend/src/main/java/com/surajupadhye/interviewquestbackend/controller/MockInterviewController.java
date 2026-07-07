@@ -47,7 +47,8 @@ public class MockInterviewController {
     public ResponseEntity<MockInterview> startInterview(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody Map<String, String> requestParams,
-            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userApiKey) {
+            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userGroqApiKey,
+            @RequestHeader(name = "X-Gemini-Api-Key", required = false) String userGeminiApiKey) {
         
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Logged in user not found"));
@@ -60,6 +61,7 @@ public class MockInterviewController {
             interviewType = "TECHNICAL";
         }
 
+        String userApiKey = (userGeminiApiKey != null && !userGeminiApiKey.isBlank()) ? userGeminiApiKey : userGroqApiKey;
         MockInterview interview = interviewService.startInterview(user, companyName, topicOrSkills, interviewType, userApiKey);
         return new ResponseEntity<>(interview, HttpStatus.CREATED);
     }
@@ -69,7 +71,8 @@ public class MockInterviewController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long id,
             @RequestBody Map<String, String> requestBody,
-            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userApiKey) {
+            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userGroqApiKey,
+            @RequestHeader(name = "X-Gemini-Api-Key", required = false) String userGeminiApiKey) {
         
         MockInterview interview = interviewService.getInterviewById(id);
         // Verify owner
@@ -82,6 +85,7 @@ public class MockInterviewController {
             return ResponseEntity.badRequest().build();
         }
 
+        String userApiKey = (userGeminiApiKey != null && !userGeminiApiKey.isBlank()) ? userGeminiApiKey : userGroqApiKey;
         MockInterview updated = interviewService.respondToQuestion(id, candidateResponse, userApiKey);
         return ResponseEntity.ok(updated);
     }
@@ -90,7 +94,8 @@ public class MockInterviewController {
     public ResponseEntity<MockInterview> evaluateInterview(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long id,
-            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userApiKey) {
+            @RequestHeader(name = "X-Groq-Api-Key", required = false) String userGroqApiKey,
+            @RequestHeader(name = "X-Gemini-Api-Key", required = false) String userGeminiApiKey) {
         
         MockInterview interview = interviewService.getInterviewById(id);
         // Verify owner
@@ -98,6 +103,7 @@ public class MockInterviewController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
+        String userApiKey = (userGeminiApiKey != null && !userGeminiApiKey.isBlank()) ? userGeminiApiKey : userGroqApiKey;
         MockInterview updated = interviewService.evaluateInterview(id, userApiKey);
         return ResponseEntity.ok(updated);
     }

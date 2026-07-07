@@ -30,6 +30,7 @@ const MockInterview = () => {
   }, [location.search]);
   const [interviewType, setInterviewType] = useState('TECHNICAL');
   const [userApiKey, setUserApiKey] = useState('');
+  const [aiProvider, setAiProvider] = useState('gemini');
 
   // Active interview states
   const [activeSession, setActiveSession] = useState(null);
@@ -46,8 +47,20 @@ const MockInterview = () => {
   });
   const recognitionRef = useRef(null);
 
+  const fetchAIConfig = async () => {
+    try {
+      const response = await API.get('/api/ai-config');
+      if (response.data && response.data.provider) {
+        setAiProvider(response.data.provider);
+      }
+    } catch (err) {
+      console.error('Failed to load AI configuration', err);
+    }
+  };
+
   useEffect(() => {
     fetchSessionHistory();
+    fetchAIConfig();
     return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -211,14 +224,15 @@ const MockInterview = () => {
 
       const headers = {};
       if (userApiKey.trim()) {
-        headers['X-Groq-Api-Key'] = userApiKey.trim();
+        const headerName = aiProvider === 'gemini' ? 'X-Gemini-Api-Key' : 'X-Groq-Api-Key';
+        headers[headerName] = userApiKey.trim();
       }
 
       const response = await API.post('/api/mock-interviews/start', payload, { headers });
       setActiveSession(response.data);
       setChatInput('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to start AI interview. Make sure you provided a valid Groq API Key.');
+      setError(err.response?.data?.message || `Failed to start AI interview. Make sure you provided a valid ${aiProvider === 'gemini' ? 'Gemini' : 'Groq'} API Key.`);
     } finally {
       setChatLoading(false);
     }
@@ -249,7 +263,8 @@ const MockInterview = () => {
       setChatLoading(true);
       const headers = {};
       if (userApiKey.trim()) {
-        headers['X-Groq-Api-Key'] = userApiKey.trim();
+        const headerName = aiProvider === 'gemini' ? 'X-Gemini-Api-Key' : 'X-Groq-Api-Key';
+        headers[headerName] = userApiKey.trim();
       }
 
       const response = await API.post(
@@ -259,7 +274,7 @@ const MockInterview = () => {
       );
       setActiveSession(response.data);
     } catch (err) {
-      setError('Connection to Groq API was lost. Could not load next response.');
+      setError('Connection to AI API was lost. Could not load next response.');
     } finally {
       setChatLoading(false);
     }
@@ -274,7 +289,8 @@ const MockInterview = () => {
       
       const headers = {};
       if (userApiKey.trim()) {
-        headers['X-Groq-Api-Key'] = userApiKey.trim();
+        const headerName = aiProvider === 'gemini' ? 'X-Gemini-Api-Key' : 'X-Groq-Api-Key';
+        headers[headerName] = userApiKey.trim();
       }
 
       const response = await API.post(`/api/mock-interviews/${activeSession.id}/evaluate`, {}, { headers });
@@ -340,7 +356,7 @@ const MockInterview = () => {
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {activeSession 
                   ? `Interview with AI (${activeSession.companyName} - ${activeSession.interviewType})`
-                  : 'Simulate HR & technical rounds using Groq AI'}
+                  : `Simulate HR & technical rounds using ${aiProvider === 'gemini' ? 'Gemini AI' : 'Groq AI'}`}
               </p>
             </div>
           </div>
@@ -429,7 +445,7 @@ const MockInterview = () => {
                   <div className="flex items-start space-x-2 text-xs text-zinc-600 dark:text-zinc-450 leading-relaxed font-medium">
                     <Info className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>
-                      You can optionally input your own **Groq API Key** to bypass system credit limits. Your key remains private and is only used to route requests.
+                      You can optionally input your own **{aiProvider === 'gemini' ? 'Gemini API Key' : 'Groq API Key'}** to bypass system credit limits. Your key remains private and is only used to route requests.
                     </span>
                   </div>
                   <div className="relative">
@@ -440,7 +456,7 @@ const MockInterview = () => {
                       type="password"
                       value={userApiKey}
                       onChange={(e) => setUserApiKey(e.target.value)}
-                      placeholder="gsk_..."
+                      placeholder={aiProvider === 'gemini' ? "AI Studio API Key (AIzaSy...)" : "gsk_..."}
                       className="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-650 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600"
                     />
                   </div>

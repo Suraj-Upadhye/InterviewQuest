@@ -1473,7 +1473,7 @@ Please follow these strict instructions:
 
               {/* Prompt Textarea */}
               <div>
-                <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Prompt for Groq AI</label>
+                <label className="block text-[10px] font-black text-zinc-450 dark:text-zinc-500 mb-1.5 uppercase">Prompt for AI Generator</label>
                 <textarea
                   value={aiPromptText}
                   onChange={(e) => setAiPromptText(e.target.value)}
