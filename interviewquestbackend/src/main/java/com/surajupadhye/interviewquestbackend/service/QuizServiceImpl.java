@@ -404,10 +404,28 @@ public class QuizServiceImpl implements QuizService {
 
         double percentage = (double) score / totalQuestions * 100.0;
 
+        String subjectTitle = "Mixed Quiz";
+        List<String> slugs = Arrays.asList(subjectSlugsCombined.split("~"));
+        if (slugs.size() == 1) {
+            Optional<Subject> subjectOpt = subjectRepository.findBySlug(slugs.get(0));
+            if (subjectOpt.isPresent()) {
+                subjectTitle = subjectOpt.get().getTitle() + " Practice Quiz";
+            } else {
+                subjectTitle = subjectSlugsCombined.toUpperCase().replace("-", " ") + " Practice Quiz";
+            }
+        } else {
+            subjectTitle = slugs.stream()
+                .map(slug -> {
+                    Optional<Subject> s = subjectRepository.findBySlug(slug);
+                    return s.map(Subject::getTitle).orElse(slug.toUpperCase().replace("-", " "));
+                })
+                .collect(Collectors.joining(" & "));
+        }
+
         return QuizResultResponse.builder()
                 .attemptId(savedAttempt.getId())
-                .quizTitle("Mixed Subjects Quiz")
-                .subjectTitle(subjectSlugsCombined.toUpperCase().replace("-", " & "))
+                .quizTitle(slugs.size() == 1 ? "Subject Quiz" : "Mixed Subjects Quiz")
+                .subjectTitle(subjectTitle)
                 .score(score)
                 .totalQuestions(totalQuestions)
                 .percentage(Math.round(percentage * 100.0) / 100.0)

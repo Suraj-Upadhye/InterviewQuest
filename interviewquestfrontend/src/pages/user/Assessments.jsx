@@ -6,10 +6,9 @@ import {
   ArrowLeft, Timer, BookOpen, Calendar, Award, CheckCircle2,
   XCircle, AlertCircle, Loader2, PlayCircle, History, RefreshCw,
   Plus, Edit3, Trash2, ChevronRight, ChevronDown, Check, HelpCircle,
-  Layers, Sparkles, PlusCircle, Trash, Menu, LogOut, Search
+  Layers, Sparkles, PlusCircle, Trash, Menu, LogOut, Search, X
 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
-
 
 const iconMap = {
   Cpu: Layers,
@@ -38,15 +37,13 @@ const Assessments = () => {
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // { questionId: selectedOption }
+  const [lockedQuestions, setLockedQuestions] = useState({}); // { questionId: true }
   const [currentIdx, setCurrentIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
-
   // Mixed quiz states
   const [isMixQuiz, setIsMixQuiz] = useState(false);
   const [mixSubjectSlugs, setMixSubjectSlugs] = useState('');
-
-
 
   // Admin Modals & Forms States
   const [quizModalOpen, setQuizModalOpen] = useState(false);
@@ -160,6 +157,7 @@ const Assessments = () => {
       }
       setQuizQuestions(questions);
       setAnswers({});
+      setLockedQuestions({});
       setCurrentIdx(0);
       setResult(null);
       setActiveQuiz({ id: qId, title: 'Quiz Session' });
@@ -181,6 +179,7 @@ const Assessments = () => {
       }
       setQuizQuestions(questions);
       setAnswers({});
+      setLockedQuestions({});
       setCurrentIdx(0);
       setResult(null);
       setActiveQuiz({ id: 'mix', title: 'Mixed Subjects Practice' });
@@ -193,9 +192,16 @@ const Assessments = () => {
   };
 
   const selectOption = (questionId, option) => {
+    if (lockedQuestions[questionId]) return;
+
     setAnswers(prev => ({
       ...prev,
       [questionId]: option
+    }));
+
+    setLockedQuestions(prev => ({
+      ...prev,
+      [questionId]: true
     }));
   };
 
@@ -439,35 +445,65 @@ const Assessments = () => {
 
           {/* Question Grid Selection */}
           <div className="bg-zinc-50/50 dark:bg-[#0d0d11]/40 border border-zinc-200/60 dark:border-zinc-900/60 rounded-xl p-4 flex flex-wrap gap-2 justify-center mb-6">
-            {quizQuestions.map((q, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIdx(idx)}
-                className={`w-9 h-9 text-xs font-bold rounded-xl border transition cursor-pointer ${
-                  currentIdx === idx
-                    ? 'bg-zinc-950 dark:bg-white border-zinc-950 dark:border-white text-white dark:text-zinc-950'
-                    : answers[q.id]
-                    ? 'bg-purple-100 dark:bg-purple-950/40 border-purple-300 dark:border-purple-900/80 text-purple-750 dark:text-purple-400'
-                    : 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-850 text-zinc-400 dark:text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-700'
-                }`}
-              >
-                {idx + 1}
-              </button>
-            ))}
+            {quizQuestions.map((q, idx) => {
+              const isCurrent = currentIdx === idx;
+              const isLocked = !!lockedQuestions[q.id];
+              const isCorrect = answers[q.id] === q.correctAnswer;
+
+              let gridBtnStyle = '';
+              if (isCurrent) {
+                gridBtnStyle = 'ring-2 ring-purple-600 dark:ring-purple-400 border-purple-600 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/20 text-purple-750 dark:text-purple-300 font-extrabold';
+              } else if (isLocked) {
+                if (isCorrect) {
+                  gridBtnStyle = 'bg-emerald-100 dark:bg-emerald-950/30 border-emerald-500 text-emerald-700 dark:text-emerald-400 font-bold';
+                } else {
+                  gridBtnStyle = 'bg-rose-100 dark:bg-rose-950/30 border-rose-500 text-rose-700 dark:text-rose-400 font-bold';
+                }
+              } else {
+                gridBtnStyle = 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-850 text-zinc-400 dark:text-zinc-500 hover:border-zinc-400 dark:hover:border-zinc-700';
+              }
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIdx(idx)}
+                  className={`w-9 h-9 text-xs font-bold rounded-xl border transition cursor-pointer ${gridBtnStyle}`}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
           </div>
 
           {/* Question Display Card */}
           <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-8 shadow-sm">
             <div className="flex items-center space-x-2 mb-4">
-              <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
-                currentQuestion.difficulty === 'EASY'
-                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                  : currentQuestion.difficulty === 'HARD'
+              <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${currentQuestion.difficulty === 'EASY'
+                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                : currentQuestion.difficulty === 'HARD'
                   ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
                   : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
-              }`}>
+                }`}>
                 {currentQuestion.difficulty}
               </span>
+              {lockedQuestions[currentQuestion.id] && (
+                <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md flex items-center gap-1 ${answers[currentQuestion.id] === currentQuestion.correctAnswer
+                  ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-650 border border-emerald-500/20'
+                  : 'bg-rose-100 dark:bg-rose-950/30 text-rose-655 border border-rose-500/20'
+                  }`}>
+                  {answers[currentQuestion.id] === currentQuestion.correctAnswer ? (
+                    <>
+                      <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                      <span>Correct</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-2.5 h-2.5 mr-0.5" />
+                      <span>Incorrect</span>
+                    </>
+                  )}
+                </span>
+              )}
             </div>
 
             <h2 className="text-base sm:text-lg font-bold text-zinc-950 dark:text-zinc-100 leading-relaxed mb-6">
@@ -478,26 +514,65 @@ const Assessments = () => {
             <div className="space-y-3">
               {currentQuestion.options.map((option, optIdx) => {
                 const isSelected = answers[currentQuestion.id] === option;
+                const isLocked = !!lockedQuestions[currentQuestion.id];
+                const isCorrectOption = currentQuestion.correctAnswer === option;
+
+                let optionBtnStyle = '';
+                let IndicatorIcon = null;
+
+                if (isLocked) {
+                  if (isCorrectOption) {
+                    optionBtnStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 font-bold';
+                    IndicatorIcon = <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />;
+                  } else if (isSelected) {
+                    optionBtnStyle = 'border-rose-500 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-400 font-semibold';
+                    IndicatorIcon = <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-450" />;
+                  } else {
+                    optionBtnStyle = 'border-zinc-200 dark:border-zinc-850 bg-zinc-50/50 dark:bg-zinc-950/10 text-zinc-400 dark:text-zinc-500 opacity-60 cursor-not-allowed';
+                  }
+                } else {
+                  optionBtnStyle = 'border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-950/40 text-zinc-650 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-450 dark:hover:border-zinc-700';
+                }
+
                 return (
                   <button
                     key={optIdx}
+                    disabled={isLocked}
                     onClick={() => selectOption(currentQuestion.id, option)}
-                    className={`w-full text-left px-5 py-4 border rounded-xl text-xs font-semibold transition duration-200 flex justify-between items-center cursor-pointer ${
-                      isSelected
-                        ? 'border-purple-600 dark:border-purple-400 bg-purple-500/5 text-purple-700 dark:text-purple-300'
-                        : 'border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-950/40 text-zinc-650 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:border-zinc-450 dark:hover:border-zinc-700'
-                    }`}
+                    className={`w-full text-left px-5 py-4 border rounded-xl text-xs font-semibold transition duration-200 flex justify-between items-center ${isLocked ? '' : 'cursor-pointer'
+                      } ${optionBtnStyle}`}
                   >
                     <span>{option}</span>
-                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                      isSelected ? 'border-purple-600 dark:border-purple-400 bg-purple-600 dark:bg-purple-400' : 'border-zinc-300 dark:border-zinc-700'
-                    }`}>
-                      {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                    <div className="flex items-center space-x-2 shrink-0">
+                      {IndicatorIcon ? (
+                        IndicatorIcon
+                      ) : (
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-purple-600 dark:border-purple-400 bg-purple-600 dark:bg-purple-400' : 'border-zinc-300 dark:border-zinc-700'
+                          }`}>
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                        </div>
+                      )}
                     </div>
                   </button>
                 );
               })}
             </div>
+
+            {/* Immediate Explanation Display */}
+            {lockedQuestions[currentQuestion.id] && (
+              <div className="mt-6 p-5 bg-zinc-50 dark:bg-[#09090b]/60 border border-zinc-200 dark:border-zinc-850 rounded-xl space-y-2.5 animate-fadeIn">
+                <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400 font-bold text-xs">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="uppercase tracking-wider">Explanation</span>
+                </div>
+                <p className="text-xs text-zinc-650 dark:text-zinc-450 leading-relaxed font-semibold">
+                  {currentQuestion.explanation || "No explanation provided for this question."}
+                </p>
+                <div className="pt-2 text-[10px] font-bold text-zinc-400 dark:text-zinc-550 uppercase">
+                  Correct Answer: <span className="text-emerald-600 dark:text-emerald-450 font-black">{currentQuestion.correctAnswer}</span>
+                </div>
+              </div>
+            )}
 
             {/* Navigation buttons */}
             <div className="flex justify-between items-center mt-8 border-t border-zinc-200 dark:border-zinc-900 pt-6">
@@ -544,7 +619,7 @@ const Assessments = () => {
           <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-8 text-center shadow-sm relative overflow-hidden">
             <Award className="w-14 h-14 mx-auto text-purple-600 dark:text-purple-400 mb-4 animate-bounce" />
             <h2 className="text-xl font-extrabold text-zinc-950 dark:text-white">Practice Graded Successfully!</h2>
-            <p className="text-zinc-450 text-[10px] font-bold uppercase tracking-wider mt-1">{result.subjectTitle} • {result.quizTitle}</p>
+            <p className="text-zinc-455 text-[10px] font-bold uppercase tracking-wider mt-1">{result.subjectTitle} • {result.quizTitle}</p>
 
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mt-8 mb-6">
               <div className="bg-white dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-900 p-4 rounded-xl shadow-sm">
@@ -587,9 +662,8 @@ const Assessments = () => {
                   <h4 className="text-xs font-bold leading-relaxed pr-6 text-zinc-900 dark:text-zinc-200">
                     {idx + 1}. {detail.questionText}
                   </h4>
-                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold flex items-center space-x-1 shrink-0 ${
-                    detail.correct ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'
-                  }`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold flex items-center space-x-1 shrink-0 ${detail.correct ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                    }`}>
                     {detail.correct ? (
                       <>
                         <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -607,7 +681,7 @@ const Assessments = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
                   <div className="p-3 bg-white dark:bg-zinc-950 border border-zinc-150 dark:border-zinc-900 rounded-xl">
                     <span className="text-zinc-400 block font-bold uppercase text-[9px]">Your Answer:</span>
-                    <span className={`font-bold mt-1 block ${detail.correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                    <span className={`font-bold mt-1 block ${detail.correct ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-655 dark:text-red-400'}`}>
                       {detail.submittedAnswer || "(Skipped)"}
                     </span>
                   </div>
@@ -623,7 +697,7 @@ const Assessments = () => {
                   <span className="text-[9px] text-zinc-400 font-extrabold uppercase flex items-center mb-1">
                     <AlertCircle className="w-3.5 h-3.5 mr-1" /> Explanation
                   </span>
-                  <p className="text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed font-semibold">
+                  <p className="text-xs text-zinc-655 dark:text-zinc-400 leading-relaxed font-semibold">
                     {detail.explanation || "No explanation registered for this MCQ."}
                   </p>
                 </div>
@@ -644,7 +718,7 @@ const Assessments = () => {
       <div className="min-h-screen bg-white dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 relative overflow-hidden transition-colors duration-300">
         <Navbar variant="app" />
         <div className="max-w-5xl mx-auto w-full pt-28 px-6 pb-12 relative z-10">
-          
+
           {/* Header row */}
           <header className="flex justify-between items-center mb-8 border-b border-zinc-155 dark:border-zinc-900 pb-5">
             <div className="flex items-center space-x-3">
@@ -655,7 +729,7 @@ const Assessments = () => {
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div>
-                <h1 className="text-2xl font-black text-zinc-950 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-black text-zinc-955 dark:text-white flex items-center gap-2">
                   {activeSubject.title} Quizzes
                 </h1>
                 <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">
@@ -665,10 +739,17 @@ const Assessments = () => {
             </div>
 
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate(`/practice-quiz/mix/${activeSubject.slug}`)}
+                className="flex items-center justify-center space-x-1.5 text-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow border-none"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Start Subject Practice Quiz</span>
+              </button>
               {isAdmin && (
                 <button
                   onClick={() => setQuizModalOpen(true)}
-                  className="flex items-center justify-center space-x-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow border-none"
+                  className="flex items-center justify-center space-x-1.5 text-xs bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow border-none"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Create Quiz Category</span>
@@ -678,7 +759,7 @@ const Assessments = () => {
           </header>
 
           {error && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-650 dark:text-red-400 text-xs text-center mb-6">
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-655 dark:text-red-400 text-xs text-center mb-6">
               {error}
             </div>
           )}
@@ -709,23 +790,21 @@ const Assessments = () => {
           <div className="space-y-8">
             {Object.values(groupedQuizCatalog).map((group) => {
               if (group.quizzes.length === 0 && group.slug === 'general') return null;
-              
+
               // Determine if this group should be highlighted (if referenced in URL)
               const isGroupActive = topicSlug && topicSlug.toLowerCase() === group.slug.toLowerCase();
 
               return (
                 <div
                   key={group.slug}
-                  className={`border rounded-2xl transition duration-200 p-6 ${
-                    isGroupActive
-                      ? 'border-purple-500 bg-purple-500/[0.02] shadow-sm'
-                      : 'border-zinc-200 dark:border-zinc-900 bg-zinc-50/20 dark:bg-zinc-950/10'
-                  }`}
+                  className={`border rounded-2xl transition duration-200 p-6 ${isGroupActive
+                    ? 'border-purple-500 bg-purple-500/[0.02] shadow-sm'
+                    : 'border-zinc-200 dark:border-zinc-900 bg-zinc-50/20 dark:bg-zinc-950/10'
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className={`text-sm font-black uppercase tracking-wider ${
-                      isGroupActive ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-450'
-                    }`}>
+                    <h3 className={`text-sm font-black uppercase tracking-wider ${isGroupActive ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-500 dark:text-zinc-450'
+                      }`}>
                       {group.title}
                     </h3>
                     <span className="text-[10px] text-zinc-400 font-bold uppercase">
@@ -757,13 +836,12 @@ const Assessments = () => {
                               </div>
 
                               {quiz.attempted && (
-                                <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold shrink-0 ${
-                                  quiz.latestPercentage >= 70
-                                    ? 'bg-emerald-500/10 text-emerald-600'
-                                    : quiz.latestPercentage >= 40
+                                <span className={`px-2.5 py-1 rounded-full text-[9px] font-extrabold shrink-0 ${quiz.latestPercentage >= 70
+                                  ? 'bg-emerald-500/10 text-emerald-600'
+                                  : quiz.latestPercentage >= 40
                                     ? 'bg-amber-500/10 text-amber-600'
                                     : 'bg-red-500/10 text-red-600'
-                                }`}>
+                                  }`}>
                                   Score: {quiz.latestScore}/{quiz.latestTotalQuestions}
                                 </span>
                               )}
@@ -783,7 +861,7 @@ const Assessments = () => {
                                       </div>
                                       <button
                                         onClick={() => handleDeleteMcq(q.id)}
-                                        className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-red-550 hover:text-red-500 rounded transition cursor-pointer border-none bg-transparent"
+                                        className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-red-555 hover:text-red-500 rounded transition cursor-pointer border-none bg-transparent"
                                         title="Delete Question"
                                       >
                                         <Trash className="w-3 h-3" />
@@ -953,93 +1031,133 @@ const Assessments = () => {
 
         {/* MODAL: ADMIN ADD QUESTION MANUALLY */}
         {mcqModalOpen && (
-          <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
+          <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-sans select-none">
+            <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative shadow-2xl flex flex-col max-h-[90vh] text-zinc-900 dark:text-zinc-100 animate-scaleIn">
+              <button
+                onClick={() => setMcqModalOpen(false)}
+                className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition cursor-pointer border-none bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
               <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-850 pb-3 shrink-0">
                 <PlusCircle className="w-5 h-5 text-emerald-500 mr-2" />
                 Add Question Manually
               </h2>
 
-              <form onSubmit={handleSaveMcq} className="flex-grow flex flex-col overflow-y-auto space-y-4 pr-1">
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-450 mb-1.5 uppercase">Question Text *</label>
-                  <textarea
-                    value={mcqText}
-                    onChange={(e) => setMcqText(e.target.value)}
-                    placeholder="Enter question context or prompt..."
-                    rows="3"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs resize-none"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2.5">
-                  <label className="block text-[10px] font-black text-zinc-450 uppercase">Configure Options *</label>
-                  {mcqOptions.map((opt, idx) => (
-                    <div key={idx} className="flex items-center space-x-2">
-                      <span className="text-[10px] font-black text-zinc-400 w-4">{String.fromCharCode(65 + idx)}</span>
-                      <input
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                          const nextOpts = [...mcqOptions];
-                          nextOpts[idx] = e.target.value;
-                          setMcqOptions(nextOpts);
-                        }}
-                        placeholder={`Option ${String.fromCharCode(65 + idx)} description...`}
-                        className="flex-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-500 text-xs"
-                        required
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-450 mb-1.5 uppercase">Correct Answer *</label>
-                    <select
-                      value={mcqCorrectAnswer}
-                      onChange={(e) => setMcqCorrectAnswer(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-600 dark:text-zinc-300"
-                      required
-                    >
-                      <option value="">Select Option</option>
-                      {mcqOptions.map((opt, idx) => (
-                        <option key={idx} value={opt} disabled={!opt.trim()}>{opt ? `${String.fromCharCode(65 + idx)}. ${opt}` : `Empty Option`}</option>
+              <form onSubmit={handleSaveMcq} className="flex-grow flex flex-col overflow-y-auto space-y-6 pr-1">
+                {/* Design and Interactive Preview Area */}
+                <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm space-y-4">
+                  {/* Difficulty selector pill buttons */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-zinc-400 uppercase">Interactive Preview</span>
+                    <div className="flex space-x-1.5">
+                      {['EASY', 'MEDIUM', 'HARD'].map((diff) => (
+                        <button
+                          key={diff}
+                          type="button"
+                          onClick={() => setMcqDifficulty(diff)}
+                          className={`px-2.5 py-0.5 rounded-md text-[9px] font-extrabold transition cursor-pointer uppercase border ${mcqDifficulty === diff
+                            ? diff === 'EASY'
+                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                              : diff === 'HARD'
+                                ? 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                                : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                            : 'bg-transparent text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-300'
+                            }`}
+                        >
+                          {diff}
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-450 mb-1.5 uppercase">Difficulty</label>
-                    <select
-                      value={mcqDifficulty}
-                      onChange={(e) => setMcqDifficulty(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-655"
-                    >
-                      <option value="EASY">EASY</option>
-                      <option value="MEDIUM">MEDIUM</option>
-                      <option value="HARD">HARD</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-455 mb-1.5 uppercase">Explanation</label>
-                  <textarea
-                    value={mcqExplanation}
-                    onChange={(e) => setMcqExplanation(e.target.value)}
-                    placeholder="Provide context explaining the correct answer choice..."
-                    rows="2"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 focus:outline-none focus:border-indigo-500 text-xs resize-none"
-                  />
+                  {/* Question textarea representing the actual question title */}
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-black text-zinc-400 uppercase">Question Text *</label>
+                    <textarea
+                      value={mcqText}
+                      onChange={(e) => setMcqText(e.target.value)}
+                      placeholder="Type the question context or prompt here..."
+                      rows="3"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-sm font-semibold resize-none text-zinc-900 dark:text-zinc-100"
+                      required
+                    />
+                  </div>
+
+                  {/* Options inputs styled like active options cards */}
+                  <div className="space-y-3">
+                    <label className="block text-[9px] font-black text-zinc-400 uppercase">Options (Click circle on right to mark Correct option) *</label>
+                    {mcqOptions.map((opt, idx) => {
+                      const optLetter = String.fromCharCode(65 + idx);
+                      const isCorrect = mcqCorrectAnswer === opt && opt.trim() !== '';
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`w-full px-4 py-3 border rounded-xl text-xs font-semibold flex items-center justify-between transition duration-200 ${isCorrect
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 font-bold'
+                            : 'border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-950/40 text-zinc-650'
+                            }`}
+                        >
+                          <div className="flex items-center flex-grow mr-4">
+                            <span className="text-[10px] font-black text-zinc-400 w-4 select-none">{optLetter}</span>
+                            <input
+                              type="text"
+                              value={opt}
+                              onChange={(e) => {
+                                const nextOpts = [...mcqOptions];
+                                nextOpts[idx] = e.target.value;
+                                setMcqOptions(nextOpts);
+                                // If the correct answer matches the old value, update it
+                                if (mcqCorrectAnswer === opt) {
+                                  setMcqCorrectAnswer(e.target.value);
+                                }
+                              }}
+                              placeholder={`Option ${optLetter} text...`}
+                              className="flex-grow bg-transparent border-none focus:outline-none focus:ring-0 text-xs font-semibold p-0 text-zinc-900 dark:text-zinc-100"
+                              required
+                            />
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={!opt.trim()}
+                            onClick={() => setMcqCorrectAnswer(opt)}
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center transition ${!opt.trim()
+                              ? 'opacity-30 cursor-not-allowed border-zinc-200 dark:border-zinc-800'
+                              : isCorrect
+                                ? 'border-emerald-500 bg-emerald-500 text-white'
+                                : 'border-zinc-350 dark:border-zinc-700 hover:border-emerald-500 cursor-pointer'
+                              }`}
+                            title="Mark as correct answer"
+                          >
+                            {isCorrect && <Check className="w-3.5 h-3.5 text-white" />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Explanation matching interactive feedback box */}
+                  <div className="p-4 bg-zinc-100/60 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-900 rounded-xl space-y-1.5">
+                    <label className="block text-[9px] font-black text-zinc-400 uppercase">Explanation Text</label>
+                    <textarea
+                      value={mcqExplanation}
+                      onChange={(e) => setMcqExplanation(e.target.value)}
+                      placeholder="Explain why the selected option is correct..."
+                      rows="2"
+                      className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3.5 py-2 focus:outline-none focus:border-indigo-500 text-xs resize-none text-zinc-900 dark:text-zinc-100"
+                    />
+                  </div>
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex space-x-3 pt-4 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+                <div className="flex space-x-3 pt-4 border-t border-zinc-100 dark:border-zinc-800 shrink-0 font-sans">
                   <button
                     type="button"
                     onClick={() => setMcqModalOpen(false)}
-                    className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
+                    className="w-1/2 py-2.5 bg-zinc-100 dark:bg-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-750 text-zinc-600 dark:text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer border-none"
                   >
                     Cancel
                   </button>
@@ -1075,7 +1193,7 @@ const Assessments = () => {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate('/dashboard')}
-              className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-150 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-500 hover:text-zinc-950 dark:hover:text-white cursor-pointer mr-2"
+              className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-150 dark:hover:bg-zinc-800 rounded-xl transition text-zinc-500 hover:text-zinc-955 dark:hover:text-white cursor-pointer mr-2"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -1095,7 +1213,7 @@ const Assessments = () => {
               <button
                 onClick={() => {
                   // Mix first few subject codes
-                  const slugs = subjects.slice(0, 3).map(s => s.slug).join('-');
+                  const slugs = subjects.slice(0, 3).map(s => s.slug).join('~');
                   navigate(`/practice-quiz/mix/${slugs}`);
                 }}
                 className="flex items-center space-x-1.5 text-xs bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow-md shadow-purple-500/10 border-none"
@@ -1105,7 +1223,9 @@ const Assessments = () => {
               </button>
             )}
           </div>
-        </header>        {/* Subject Cards Catalog */}
+        </header>
+
+        {/* Subject Cards Catalog */}
         <div className="space-y-6">
           {subjects.length === 0 ? (
             <div className="text-center py-16 bg-zinc-50 dark:bg-zinc-900/10 border border-zinc-200 dark:border-zinc-900 border-dashed rounded-3xl text-zinc-500">
@@ -1133,12 +1253,19 @@ const Assessments = () => {
                       </p>
                     </div>
 
-                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between gap-4">
+                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between gap-3">
                       <button
                         onClick={() => navigate(`/practice-quiz/${subj.slug}`)}
-                        className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent"
+                        className="flex-1 text-center py-2 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-755 dark:text-zinc-300 text-xs font-bold rounded-lg transition cursor-pointer border border-zinc-200 dark:border-zinc-855"
                       >
                         View Quizzes
+                      </button>
+                      <button
+                        onClick={() => navigate(`/practice-quiz/mix/${subj.slug}`)}
+                        className="flex-1 text-center py-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-lg transition cursor-pointer hover:bg-zinc-900 dark:hover:bg-zinc-200 border border-transparent flex items-center justify-center gap-1 shadow-sm"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Subject Quiz</span>
                       </button>
                     </div>
                   </div>

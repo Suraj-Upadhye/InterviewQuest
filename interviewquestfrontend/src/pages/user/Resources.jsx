@@ -183,7 +183,7 @@ const Resources = () => {
     const template = `Create a highly detailed, comprehensive study resource for the topic "${aiTopic}" under the chapter "${aiChapter}" in the subject "${aiSubject}".
 
 Please follow these strict instructions:
-1. Explain the concepts in a highly detailed manner but using very simple, clear, and direct language. Break down complex terminology into plain English. The resource must be optimized to help university students prepare for technical job interviews. Include common interview questions and key callouts.
+1. Explain the concepts in a simple manner and in simple language (simple, clear, and direct language). Break down complex terminology into plain English. The resource must be optimized to help university students prepare for technical job interviews. Include common interview questions and key callouts.
 2. Format the response exclusively in clean, semantic HTML. Use only tags like <h2>, <h3>, <p>, <ul>, <ol>, <li>, <blockquote>, <table>, and <pre><code>.
 3. Tables and Tabular Data: For all example datasets, comparison grids, inputs/outputs, database table structures, mock database values (such as Left Table and Right Table in Joins), you MUST use proper semantic HTML <table> tags including <thead>, <tbody>, <tr>, <th>, and <td>. Never display tabular/grid data as plain text, space-separated lists, or simple bullet points.
 4. Do NOT use markdown syntax (do NOT use #, ##, **, * or single backticks). For example, use <strong>text</strong> instead of **text**, and <code>code</code> instead of \`code\`.
@@ -191,28 +191,23 @@ Please follow these strict instructions:
    <pre><code class="language-mermaid">
    [diagram syntax here]
    </code></pre>
-6. Supported Mermaid Diagram Types & Styles:
-   - Use a wide variety of Mermaid diagram types matching the topic context (e.g., Flowcharts, Sequence Diagrams, Class Diagrams, State Diagrams, Entity Relationship (ER) Diagrams, User Journeys, Gantt Charts, Pie Charts, Quadrant Charts, Requirement Diagrams, GitGraphs, C4 Diagrams, Mindmaps, Timelines, ZenUML, Sankey Diagrams, XY Charts, Block Diagrams, Packets, Kanbans, Architecture Diagrams, Radar Charts, Event Modeling, Treemaps, Venn Diagrams, Ishikawa (Fishbone) Diagrams, Wardley Maps, and TreeViews).
-   - Make the diagrams colorful and visually appealing (using subgraphs, custom class definitions, colors, node styling, and themes where supported).
-   - For Set Theory, SQL Joins, or intersection/union concepts, you MUST represent Venn Diagrams using a horizontal layout of three interconnected circular nodes: A((Left Table / Left Only)), AB((Intersection / Matching Rows)), and B((Right Table / Right Only)). Use style directives to highlight the active parts of the join with a vibrant color (like '#ec4899') and inactive parts with neutral light grey ('#f3f4f6').
-     For example, an INNER JOIN should highlight ONLY the center AB node:
-     flowchart LR
-       A((Table A<br/>Left Only)) <--> AB((Intersection<br/>Matching Rows)) <--> B((Table B<br/>Right Only))
-       style A fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
-       style B fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
-       style AB fill:#ec4899,stroke:#db2777,stroke-width:3px;
-     
-     A LEFT JOIN should highlight both A and AB:
-     flowchart LR
-       A((Table A<br/>Left Table)) <--> AB((Intersection<br/>Matching Rows)) <--> B((Table B<br/>Right Table))
-       style A fill:#ec4899,stroke:#db2777,stroke-width:3px;
-       style AB fill:#ec4899,stroke:#db2777,stroke-width:3px;
-       style B fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px;
-7. Strict Mermaid Syntax Rules:
-   - All node labels containing spaces, parentheses, brackets, or special characters MUST be wrapped in double quotes (e.g. use A["Process Control Block (PCB)"] instead of A[Process Control Block (PCB)]).
-   - Node IDs must be simple alphanumeric characters with no spaces or special symbols.
+6. Choose the standard diagram type for this concept representation used worldwide:
+   - For state transitions (like Process States or Transaction States) use State Diagrams (stateDiagram-v2).
+   - For database structure (like schemas, tables, relationships) use ER Diagrams (erDiagram).
+   - For step-by-step logic, flowcharts, or system processes use Flowcharts (flowchart TD or flowchart LR).
+   - For communication over time (like TCP Handshake, client-server requests) use Sequence Diagrams (sequenceDiagram).
+   - For OOP designs (like inheritance, design patterns, classes) use Class Diagrams (classDiagram).
+   - For hierarchies or conceptual mapping use Mindmaps (mindmap).
+   Make the diagrams colorful and visually appealing (using subgraphs, custom class definitions, colors, node styling, and themes where supported).
+7. Strict Mermaid Syntax Rules to prevent ANY syntax errors:
+   - ALL node labels containing spaces, parentheses, brackets, or special characters MUST be wrapped in double quotes (e.g. use A["Process Control Block (PCB)"] instead of A[Process Control Block (PCB)]).
+   - Node IDs must be simple alphanumeric characters with no spaces or special symbols (e.g. A, B, C, Node1, Node2).
    - Ensure all arrows and connectors are valid (e.g. --> or -.->). Do NOT append an extra ">" after a label. Use "-->|label| B" or "-.->|label| B", NEVER "-->|label|> B" or "-.->|label|> B".
-8. Return only the inner HTML content. Do not include <html>, <head>, or <body> tags.`;
+   - In stateDiagram-v2, do not use transition labels with special symbols unless the state names are clean. Better yet, write transition labels after a colon (e.g. StateA --> StateB : label).
+   - In erDiagram, do not put spaces in entity names. For example, use CUSTOMER_ORDER or CustomerOrder, never "Customer Order".
+   - Do not mix syntax elements from flowcharts in sequence diagrams or state diagrams.
+8. Return only the inner HTML content. Do not include <html>, <head>, or <body> tags.
+9. Styling Mermaid Diagrams: NEVER hardcode pure white (#fff, #ffffff, white) or pure black (#000, #000000, black) background fills for nodes/shapes. The application runs in both dark and light modes; pure white nodes will hide arrow lines in dark mode, and pure black nodes will hide text. Use theme-adaptive colors or custom classes with mid-tone theme colors (e.g., #312e81 for indigo, #065f46 for green, #854d0e for amber, #1e293b for slate) that look great in both dark and light themes. Let the default theme handle backgrounds natively where possible. Do not hardcode arrow stroke colors.`;
 
     setAiPromptText(template);
   }, [aiSubject, aiChapter, aiTopic, aiModalOpen]);
@@ -588,14 +583,14 @@ Please follow these strict instructions:
 
     // Determine target topic slug
     let targetTopic = currentSubject.topics.find(t => t.slug === topicSlug);
-    
+
     // Fallback: If topicSlug is not found or not provided, redirect to the first topic
     if (!targetTopic && currentSubject.topics && currentSubject.topics.length > 0) {
       targetTopic = currentSubject.topics[0];
       navigate(`/resources/${subjectSlug}/${targetTopic.slug}`, { replace: true });
       return;
     }
-    
+
     if (!targetTopic) {
       setActiveTopicData(null);
       return;

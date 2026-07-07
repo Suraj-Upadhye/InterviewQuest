@@ -98,13 +98,14 @@ public class QuizController {
         return ResponseEntity.ok(quizService.submitQuiz(user, id, submitRequest));
     }
 
+
     // Start a mixed subjects quiz
     @GetMapping("/public/quizzes/mix/{subjectSlugs}")
     public ResponseEntity<List<QuizQuestionDTO>> startMixQuiz(
             @PathVariable String subjectSlugs,
             @RequestParam(defaultValue = "15") int limit) {
 
-        List<String> slugs = Arrays.asList(subjectSlugs.split("-"));
+        List<String> slugs = Arrays.asList(subjectSlugs.split("~"));
         return ResponseEntity.ok(quizService.startMixQuiz(slugs, limit));
     }
 

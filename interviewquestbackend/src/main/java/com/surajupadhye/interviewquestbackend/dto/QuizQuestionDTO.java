@@ -13,6 +13,8 @@ public class QuizQuestionDTO {
     private String questionText;
     private List<String> options;
     private String difficulty;
+    private String correctAnswer;
+    private String explanation;
 
     public static QuizQuestionDTO fromEntity(Question question) {
         return QuizQuestionDTO.builder()
@@ -20,6 +22,8 @@ public class QuizQuestionDTO {
                 .questionText(question.getQuestionText())
                 .options(question.getOptions())
                 .difficulty(question.getDifficulty() != null ? question.getDifficulty().name() : "MEDIUM")
+                .correctAnswer(question.getCorrectAnswer())
+                .explanation(question.getExplanation())
                 .build();
     }
 }

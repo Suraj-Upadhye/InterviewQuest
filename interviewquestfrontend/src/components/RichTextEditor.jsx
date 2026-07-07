@@ -410,6 +410,27 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
             pre.replaceWith(wrapper);
           } catch (err) {
             console.error('Mermaid render error:', err);
+            try {
+              const errWrapper = document.createElement('div');
+              errWrapper.className = 'mermaid-error-container p-4 my-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl text-rose-700 dark:text-rose-400';
+              errWrapper.innerHTML = `
+                <div class="flex items-start space-x-2.5">
+                  <div class="w-4 h-4 mt-0.5 shrink-0 text-rose-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-xs font-bold uppercase tracking-wider mb-1">Mermaid Syntax Error</h4>
+                    <p class="text-[10px] font-medium leading-relaxed mb-3">The AI generated a diagram with syntax errors. You can edit the block or regenerate the content.</p>
+                    <pre class="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-lg text-[9px] font-mono overflow-x-auto whitespace-pre-wrap max-h-40 leading-normal text-zinc-600 dark:text-zinc-400 select-all">${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                  </div>
+                </div>
+              `;
+              pre.replaceWith(errWrapper);
+            } catch (innerErr) {
+              console.error('Failed to render fallback error container', innerErr);
+            }
           }
         }
       } catch (err) {
@@ -554,7 +575,14 @@ const RichTextEditor = forwardRef(({ content, editable = false, onContentChange,
       )}
 
       {/* ---- Editor Content ---- */}
-      <EditorContent editor={editor} />
+      {editable ? (
+        <EditorContent editor={editor} />
+      ) : (
+        <div 
+          className="ProseMirror" 
+          dangerouslySetInnerHTML={{ __html: content }} 
+        />
+      )}
 
       {/* ---- Slash Commands Dropdown ---- */}
       {showSlashMenu && editable && (

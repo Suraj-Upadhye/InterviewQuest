@@ -627,3 +627,64 @@
 .dark .rich-text-editor .ProseMirror pre .hljs-built_in {
   color: #f87171;
 }
+
+/* ==========================================
+   Table Styles
+   ========================================== */
+.rich-text-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 0.825rem;
+  line-height: 1.5;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.dark .rich-text-editor table {
+  border-color: #27272a;
+}
+
+.rich-text-editor th {
+  background-color: #f4f4f5;
+  color: #18181b;
+  font-weight: 800;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid #e4e4e7;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark .rich-text-editor th {
+  background-color: #121215;
+  color: #fafafa;
+  border-bottom-color: #27272a;
+}
+
+.rich-text-editor td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e4e4e7;
+  color: #52525b;
+  font-weight: 500;
+}
+
+.dark .rich-text-editor td {
+  border-bottom-color: #27272a;
+  color: #a1a1aa;
+}
+
+.rich-text-editor tr:last-child td {
+  border-bottom: none;
+}
+
+.rich-text-editor tr:hover td {
+  background-color: #fafafa;
+}
+
+.dark .rich-text-editor tr:hover td {
+  background-color: rgba(39, 39, 42, 0.25);
+}
