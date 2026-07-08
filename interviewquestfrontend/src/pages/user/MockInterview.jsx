@@ -143,8 +143,12 @@ const MockInterview = () => {
       // 4. Resolve active session ID to generate stream
       const token = localStorage.getItem('token') || '';
 
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsHost = window.location.hostname === 'localhost' ? 'localhost:8080' : window.location.host;
+      // Derive WebSocket host from the configured API URL (VITE_API_URL),
+      // NOT from window.location.host (which would be the Vercel frontend domain).
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+      const apiUrl = new URL(apiBase);
+      const wsProtocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = apiUrl.host;
       const wsUrl = `${wsProtocol}//${wsHost}/api/v1/mock-interview/stream?token=${token}&interviewType=${interviewType}&subjectId=${selectedSubjectId}`;
 
       const ws = new WebSocket(wsUrl);
