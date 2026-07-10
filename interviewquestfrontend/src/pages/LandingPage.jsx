@@ -2,24 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
-  ArrowRight, Globe, Cpu, Database, Code, GitFork, Layers,
-  Search, X, ArrowUpRight, BookOpen,
+  ArrowRight, BookOpen,
+  Search, X, ArrowUpRight,
   Edit3, Trash2, Plus, Loader2
 } from 'lucide-react';
 import API from '../services/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-
-
-const iconMap = {
-  Cpu,
-  Database,
-  Globe,
-  GitFork,
-  Code,
-  Layers,
-  BookOpen
-};
+import IconPicker, { getIconComponent } from '../components/IconPicker';
 
 const LandingPage = () => {
   const { user, isAdmin } = useAuth();
@@ -35,32 +25,30 @@ const LandingPage = () => {
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [subjectTitle, setSubjectTitle] = useState('');
-  const [subjectCode, setSubjectCode] = useState('');
-  const [subjectSlug, setSubjectSlug] = useState('');
   const [subjectDescription, setSubjectDescription] = useState('');
   const [subjectIconName, setSubjectIconName] = useState('Cpu');
-  const [subjectShowOnLanding, setSubjectShowOnLanding] = useState(true);
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
+  const [subjectIconPickerOpen, setSubjectIconPickerOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const iconOptions = ['Cpu', 'Database', 'Globe', 'GitFork', 'Code', 'Layers', 'BookOpen'];
+  const generateCodeFromTitle = (title) => {
+    return title.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 10) || 'SUB';
+  };
+
+  const generateSlugFromTitle = (title) => {
+    return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'subject';
+  };
 
   const handleSubjectTitleChange = (val) => {
     setSubjectTitle(val);
-    if (!editingSubject) {
-      setSubjectSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-    }
   };
 
   const handleOpenAddSubject = () => {
     setEditingSubject(null);
     setSubjectTitle('');
-    setSubjectCode('');
-    setSubjectSlug('');
     setSubjectDescription('');
     setSubjectIconName('Cpu');
-    setSubjectShowOnLanding(true);
     setErrorMsg('');
     setSuccessMsg('');
     setSubjectModalOpen(true);
@@ -69,11 +57,8 @@ const LandingPage = () => {
   const handleOpenEditSubject = (subj) => {
     setEditingSubject(subj);
     setSubjectTitle(subj.title);
-    setSubjectCode(subj.code);
-    setSubjectSlug(subj.slug);
     setSubjectDescription(subj.description || '');
     setSubjectIconName(subj.iconName || 'Cpu');
-    setSubjectShowOnLanding(subj.showOnLandingPage);
     setErrorMsg('');
     setSuccessMsg('');
     setSubjectModalOpen(true);
@@ -81,8 +66,8 @@ const LandingPage = () => {
 
   const handleSaveSubject = async (e) => {
     e.preventDefault();
-    if (!subjectTitle.trim() || !subjectCode.trim() || !subjectSlug.trim()) {
-      setErrorMsg('Subject title, code, and slug are required.');
+    if (!subjectTitle.trim()) {
+      setErrorMsg('Subject title is required.');
       return;
     }
 
@@ -90,13 +75,18 @@ const LandingPage = () => {
       setSubjectSubmitting(true);
       setErrorMsg('');
       setSuccessMsg('');
+      const trimmedTitle = subjectTitle.trim();
       const payload = {
-        title: subjectTitle.trim(),
-        code: subjectCode.trim(),
-        slug: subjectSlug.trim(),
+        title: trimmedTitle,
+        code: editingSubject && editingSubject.title === trimmedTitle
+          ? editingSubject.code
+          : generateCodeFromTitle(trimmedTitle),
+        slug: editingSubject && editingSubject.title === trimmedTitle
+          ? editingSubject.slug
+          : generateSlugFromTitle(trimmedTitle),
         description: subjectDescription.trim(),
         iconName: subjectIconName,
-        showOnLandingPage: subjectShowOnLanding
+        showOnLandingPage: editingSubject ? editingSubject.showOnLandingPage : false
       };
 
       if (editingSubject) {
@@ -177,9 +167,7 @@ const LandingPage = () => {
     return `/resources/${subj.slug}/${firstTopicSlug}`;
   };
 
-  const getIconComponent = (name) => {
-    return iconMap[name] || BookOpen;
-  };
+
 
   // Filter subjects based on query
   const filteredSubjects = subjects.filter(subj =>
@@ -422,6 +410,15 @@ const LandingPage = () => {
         </div>
       )}
 
+      {/* ICON PICKER MODAL */}
+      {subjectIconPickerOpen && (
+        <IconPicker
+          value={subjectIconName}
+          onChange={setSubjectIconName}
+          onClose={() => setSubjectIconPickerOpen(false)}
+        />
+      )}
+
       {/* SUBJECTS FORM MODAL */}
       {subjectModalOpen && (
         <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -434,50 +431,30 @@ const LandingPage = () => {
             </button>
 
             <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+              {React.createElement(getIconComponent(subjectIconName), { className: 'w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2' })}
               {editingSubject ? 'Edit Subject Category' : 'Create New Subject'}
             </h2>
 
             <form onSubmit={handleSaveSubject} className="flex-grow flex flex-col overflow-hidden">
               <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
 
-                {/* Title & Code */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Subject Title *</label>
-                    <input
-                      type="text"
-                      value={subjectTitle}
-                      onChange={(e) => handleSubjectTitleChange(e.target.value)}
-                      placeholder="e.g. Operating Systems"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Code *</label>
-                    <input
-                      type="text"
-                      value={subjectCode}
-                      onChange={(e) => setSubjectCode(e.target.value)}
-                      placeholder="e.g. OS"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Slug */}
+                {/* Subject Title */}
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">URL Slug (Generated) *</label>
+                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Subject Title *</label>
                   <input
                     type="text"
-                    value={subjectSlug}
-                    onChange={(e) => setSubjectSlug(e.target.value)}
-                    placeholder="e.g. operating-systems"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
+                    value={subjectTitle}
+                    onChange={(e) => handleSubjectTitleChange(e.target.value)}
+                    placeholder="e.g. Operating Systems"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
                     required
                   />
+                  {subjectTitle.trim() && (
+                    <p className="text-[10px] text-zinc-400 mt-1.5 font-mono">
+                      Code: <span className="text-indigo-500 font-bold">{generateCodeFromTitle(subjectTitle)}</span>
+                      {' · '}Slug: <span className="text-indigo-500 font-bold">{generateSlugFromTitle(subjectTitle)}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -492,29 +469,23 @@ const LandingPage = () => {
                   />
                 </div>
 
-                {/* Icon Selection & Show on Landing Toggle */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lucide Icon</label>
-                    <select
-                      value={subjectIconName}
-                      onChange={(e) => setSubjectIconName(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-650 dark:text-zinc-300"
-                    >
-                      {iconOptions.map(icon => <option key={icon} value={icon}>{icon}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex items-center pt-5">
-                    <label className="flex items-center cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={subjectShowOnLanding}
-                        onChange={(e) => setSubjectShowOnLanding(e.target.checked)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-600 bg-zinc-100 dark:bg-zinc-900 focus:ring-indigo-500 cursor-pointer"
-                      />
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
-                    </label>
-                  </div>
+                {/* Icon Selection */}
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lucide Icon</label>
+                  <button
+                    type="button"
+                    onClick={() => setSubjectIconPickerOpen(true)}
+                    className="w-full flex items-center gap-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-600 rounded-xl px-3.5 py-2.5 transition cursor-pointer text-left group"
+                  >
+                    <div className="p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm shrink-0 group-hover:border-indigo-300 dark:group-hover:border-indigo-700 transition">
+                      {React.createElement(getIconComponent(subjectIconName), { className: 'w-5 h-5 text-indigo-600 dark:text-indigo-400' })}
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block">{subjectIconName}</span>
+                      <span className="text-[10px] text-zinc-400">Click to browse all icons</span>
+                    </div>
+                    <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  </button>
                 </div>
 
               </div>

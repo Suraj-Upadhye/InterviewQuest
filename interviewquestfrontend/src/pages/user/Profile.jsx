@@ -70,13 +70,13 @@ const Profile = () => {
     }
   }, [user]);
 
-  // Fetch resume on mount (user only)
+  // Fetch resume and API key status on mount (for all roles)
   useEffect(() => {
-    if (!isAdmin) {
+    if (user) {
       fetchResume();
       fetchApiKeyStatus();
     }
-  }, [isAdmin]);
+  }, [user]);
 
   const fetchApiKeyStatus = async () => {
     try {
@@ -304,7 +304,7 @@ const Profile = () => {
             My Profile
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Manage your account credentials{!isAdmin && ', resume'} and preferences
+            Manage your account credentials, resume, and AI configuration
           </p>
         </div>
 
@@ -739,51 +739,238 @@ const Profile = () => {
             ) : (
               <>
                 {/* Admin View: Stacked Form Panels */}
-                {/* Edit Name Form */}
+
+                {/* Top Grid: Edit Name & Professional Resume Side-by-Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Edit Name Form */}
+                  <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 flex items-center mb-1">
+                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                        Edit Name
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed mb-5">
+                        Update your display name. This will be visible across the platform.
+                      </p>
+
+                      {nameSuccess && (
+                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{nameSuccess}</span>
+                        </div>
+                      )}
+                      {nameError && (
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{nameError}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <form onSubmit={handleUpdateName} className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Name</label>
+                        <input
+                          type="text"
+                          value={newName}
+                          onChange={(e) => setNewName(e.target.value)}
+                          placeholder="Enter new name"
+                          className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={nameLoading}
+                        className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
+                      >
+                        {nameLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                          <><Save className="w-3.5 h-3.5 mr-1.5" /> Save Name</>
+                        )}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Professional Resume (Admin) */}
+                  <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm flex flex-col justify-between h-full">
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 flex items-center mb-1">
+                        <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                        Professional Resume
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed mb-6">
+                        Upload your resume in PDF format (maximum size 2MB).
+                      </p>
+
+                      {resumeSuccess && (
+                        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{resumeSuccess}</span>
+                        </div>
+                      )}
+                      {resumeError && (
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{resumeError}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      {resumeLoading ? (
+                        <div className="flex flex-col items-center justify-center py-6 text-zinc-500">
+                          <Loader2 className="w-6 h-6 animate-spin text-zinc-400 mb-2" />
+                          <p className="text-[10px]">Fetching resume status...</p>
+                        </div>
+                      ) : resume ? (
+                        <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-4 flex flex-col justify-between gap-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2.5 bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 rounded-lg border border-zinc-200 dark:border-zinc-800 shrink-0">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0 flex-grow">
+                              <h4 className="font-bold text-zinc-900 dark:text-zinc-300 text-[11px] truncate">Verified PDF Document</h4>
+                              <p className="text-[9px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                                Uploaded on: {new Date(resume.uploadedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 justify-end w-full">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewOpen(true)}
+                              className="flex items-center space-x-1 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-1.5 rounded-lg transition text-[11px] font-semibold cursor-pointer"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>Preview</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleResumeDelete}
+                              className="flex items-center space-x-1 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-2.5 py-1.5 rounded-lg transition text-[11px] font-semibold cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className={`border border-dashed border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 bg-white dark:bg-zinc-950/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition relative group min-h-[140px] ${resumeUploading ? 'pointer-events-none opacity-50' : ''}`}>
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={handleResumeUpload}
+                            className="hidden"
+                          />
+                          {resumeUploading ? (
+                            <>
+                              <Loader2 className="w-6 h-6 animate-spin text-zinc-400 mb-2" />
+                              <p className="text-[11px] text-zinc-800 dark:text-zinc-300 font-semibold">Uploading PDF...</p>
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="w-6 h-6 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition mb-2" />
+                              <p className="text-[11px] text-zinc-800 dark:text-zinc-300 font-semibold font-sans">Upload Resume</p>
+                              <p className="text-[9px] text-zinc-500 dark:text-zinc-400 mt-1 max-w-[200px] leading-relaxed">
+                                Please upload a PDF document (Max size: 2MB).
+                              </p>
+                              <span className="mt-3 text-[9px] bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950 font-bold px-3 py-1.5 rounded-lg shadow-sm transition">
+                                Select PDF
+                              </span>
+                            </>
+                          )}
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gemini API Key Configuration Card (Admin) */}
                 <div className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 shadow-sm">
                   <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200 flex items-center mb-1">
-                    <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
-                    Edit Name
+                    <KeyRound className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+                    Gemini API Configuration (BYOK)
                   </h3>
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed mb-5">
-                    Update your display name. This will be visible across the platform.
+                    Configure your personal Gemini API Key to access Mock Interview and AI generation features. Keys are encrypted at-rest using AES-256-GCM.
                   </p>
 
-                  {nameSuccess && (
+                  {keySuccess && (
                     <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{nameSuccess}</span>
+                      <span>{keySuccess}</span>
                     </div>
                   )}
-                  {nameError && (
+                  {keyError && (
                     <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center mb-4 flex items-center justify-center space-x-1.5">
                       <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{nameError}</span>
+                      <span>{keyError}</span>
                     </div>
                   )}
 
-                  <form onSubmit={handleUpdateName} className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Name</label>
-                      <input
-                        type="text"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        placeholder="Enter new name"
-                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100"
-                        required
-                      />
+                  {keyLoading ? (
+                    <div className="flex items-center justify-center py-6 text-zinc-500">
+                      <Loader2 className="w-6 h-6 animate-spin text-zinc-400 mb-2" />
                     </div>
-                    <button
-                      type="submit"
-                      disabled={nameLoading}
-                      className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
-                    >
-                      {nameLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                        <><Save className="w-3.5 h-3.5 mr-1.5" /> Save Name</>
-                      )}
-                    </button>
-                  </form>
+                  ) : hasGeminiKey ? (
+                    <div className="bg-white dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="flex items-center space-x-3 w-full sm:w-auto">
+                        <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-500/20 shrink-0">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-zinc-900 dark:text-zinc-300 text-[11px]">API Key Active</h4>
+                          <p className="text-[9px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Encrypted at-rest. Ready for real-time interviews.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleDeleteApiKey}
+                        disabled={keySaving}
+                        className="w-full sm:w-auto flex items-center justify-center space-x-1 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-3.5 py-2.5 rounded-xl transition text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" />
+                        <span>Delete Key</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSaveApiKey} className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Gemini API Key</label>
+                        <div className="relative">
+                          <input
+                            type={showGeminiKey ? 'text' : 'password'}
+                            value={geminiKey}
+                            onChange={(e) => setGeminiKey(e.target.value)}
+                            placeholder="AIzaSy..."
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-4 pr-11 py-3 focus:outline-none focus:border-indigo-500 text-xs text-zinc-900 dark:text-zinc-100 font-mono"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowGeminiKey(!showGeminiKey)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 bg-transparent border-none cursor-pointer"
+                          >
+                            {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 mt-1.5 leading-relaxed">
+                          Get a free API key from the <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-semibold">Google AI Studio</a>.
+                        </p>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={keySaving}
+                        className="w-full py-2.5 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold rounded-xl transition cursor-pointer shadow-sm flex justify-center items-center border-none hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50"
+                      >
+                        {keySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                          <><Save className="w-3.5 h-3.5 mr-1.5" /> Save & Verify Key</>
+                        )}
+                      </button>
+                    </form>
+                  )}
                 </div>
 
                 {/* Change Password Form */}

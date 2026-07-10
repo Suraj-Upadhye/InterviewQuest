@@ -1,24 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, Loader2, BookOpen,
-  Cpu, Database, Globe, GitFork, Code, Layers,
+import {
+  Loader2, BookOpen,
   Plus, Edit3, Trash2, X, Search, UserCheck, UserX,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Pin, PinOff,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../services/api';
 import Navbar from '../../components/Navbar';
-
-const iconMap = {
-  Cpu,
-  Database,
-  Globe,
-  GitFork,
-  Code,
-  Layers,
-  BookOpen
-};
+import IconPicker, { getIconComponent } from '../../components/IconPicker';
 
 const AdminDashboard = () => {
   const { logout } = useAuth();
@@ -76,14 +66,10 @@ const AdminDashboard = () => {
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [subjectTitle, setSubjectTitle] = useState('');
-  const [subjectCode, setSubjectCode] = useState('');
-  const [subjectSlugState, setSubjectSlugState] = useState('');
   const [subjectDescription, setSubjectDescription] = useState('');
   const [subjectIconName, setSubjectIconName] = useState('Cpu');
-  const [subjectShowOnLanding, setSubjectShowOnLanding] = useState(true);
   const [subjectSubmitting, setSubjectSubmitting] = useState(false);
-
-  const iconOptions = ['Cpu', 'Database', 'Globe', 'GitFork', 'Code', 'Layers', 'BookOpen'];
+  const [subjectIconPickerOpen, setSubjectIconPickerOpen] = useState(false);
 
   // Fetch all subjects from database
   const fetchAllSubjects = async () => {
@@ -104,49 +90,90 @@ const AdminDashboard = () => {
 
   const handleSubjectTitleChange = (val) => {
     setSubjectTitle(val);
-    if (!editingSubject) {
-      setSubjectSlugState(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+  };
+
+  // Auto-generate code and slug from title
+  const generateCodeFromTitle = (title) => {
+    return title
+      .trim()
+      .split(/\s+/)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 10) || 'SUB';
+  };
+
+  const generateSlugFromTitle = (title) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') || 'subject';
+  };
+
+  // How many subjects are currently pinned on the landing page
+  const pinnedCount = subjects.filter(s => s.showOnLandingPage).length;
+
+  const handleTogglePin = async (subj) => {
+    if (!subj.showOnLandingPage && pinnedCount >= 6) {
+      alert('You can pin at most 6 subjects to the landing page. Please unpin one first.');
+      return;
+    }
+    try {
+      const payload = {
+        title: subj.title,
+        code: subj.code,
+        slug: subj.slug,
+        description: subj.description,
+        iconName: subj.iconName,
+        showOnLandingPage: !subj.showOnLandingPage
+      };
+      await API.put(`/api/admin/subjects/${subj.id}`, payload);
+      fetchAllSubjects();
+    } catch (err) {
+      alert('Failed to update pin status.');
     }
   };
 
   const handleOpenAddSubject = () => {
     setEditingSubject(null);
     setSubjectTitle('');
-    setSubjectCode('');
-    setSubjectSlugState('');
     setSubjectDescription('');
     setSubjectIconName('Cpu');
-    setSubjectShowOnLanding(true);
     setSubjectModalOpen(true);
   };
 
   const handleOpenEditSubject = (subj) => {
     setEditingSubject(subj);
     setSubjectTitle(subj.title);
-    setSubjectCode(subj.code);
-    setSubjectSlugState(subj.slug);
     setSubjectDescription(subj.description || '');
     setSubjectIconName(subj.iconName || 'Cpu');
-    setSubjectShowOnLanding(subj.showOnLandingPage);
     setSubjectModalOpen(true);
   };
 
   const handleSaveSubject = async (e) => {
     e.preventDefault();
-    if (!subjectTitle.trim() || !subjectCode.trim() || !subjectSlugState.trim()) {
-      alert('Subject title, code, and slug are required.');
+    if (!subjectTitle.trim()) {
+      alert('Subject title is required.');
       return;
     }
 
     try {
       setSubjectSubmitting(true);
+      const trimmedTitle = subjectTitle.trim();
       const payload = {
-        title: subjectTitle.trim(),
-        code: subjectCode.trim(),
-        slug: subjectSlugState.trim(),
+        title: trimmedTitle,
+        // Auto-generate code and slug; when editing, preserve existing ones if title unchanged
+        code: editingSubject && editingSubject.title === trimmedTitle
+          ? editingSubject.code
+          : generateCodeFromTitle(trimmedTitle),
+        slug: editingSubject && editingSubject.title === trimmedTitle
+          ? editingSubject.slug
+          : generateSlugFromTitle(trimmedTitle),
         description: subjectDescription.trim(),
         iconName: subjectIconName,
-        showOnLandingPage: subjectShowOnLanding
+        // Preserve existing pin status when editing; default false for new subjects
+        showOnLandingPage: editingSubject ? editingSubject.showOnLandingPage : false
       };
 
       if (editingSubject) {
@@ -173,9 +200,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const getIconComponent = (name) => {
-    return iconMap[name] || BookOpen;
-  };
+
 
   const formatDateTime = (dtStr) => {
     if (!dtStr) return 'N/A';
@@ -231,15 +256,30 @@ const AdminDashboard = () => {
           <>
             {/* Global Toolbar Options */}
             <div className="flex justify-between items-center mb-8 bg-zinc-50 dark:bg-[#0d0d11]/30 border border-zinc-200 dark:border-zinc-900 p-4 rounded-2xl">
-              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                Syllabus Subjects Catalogue ({subjects.length})
-              </span>
+              <div>
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  Syllabus Subjects Catalogue ({subjects.length})
+                </span>
+                <div className="flex items-center mt-1 gap-1.5">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-4 h-1.5 rounded-full transition-colors ${
+                        i < pinnedCount
+                          ? 'bg-indigo-500 dark:bg-indigo-400'
+                          : 'bg-zinc-200 dark:bg-zinc-800'
+                      }`}
+                    />
+                  ))}
+                  <span className="text-[10px] font-bold text-zinc-400 ml-1">{pinnedCount}/6 pinned to landing</span>
+                </div>
+              </div>
               <button
                 onClick={handleOpenAddSubject}
                 className="flex items-center justify-center space-x-1.5 text-xs bg-zinc-950 dark:bg-white hover:bg-zinc-900 dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow border-none"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add Subject Category</span>
+                <span>Add Subject</span>
               </button>
             </div>
 
@@ -259,43 +299,76 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {subjects.map((subj, idx) => {
                   const Icon = getIconComponent(subj.iconName);
+                  const isPinned = subj.showOnLandingPage;
+                  const canPin = !isPinned && pinnedCount < 6;
                   return (
                     <div
                       key={subj.id || idx}
-                      className="bg-zinc-50 dark:bg-[#0d0d11] border border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 rounded-xl p-6 transition-all duration-200 flex flex-col justify-between hover:shadow-sm animate-fadeIn relative group"
+                      className={`bg-zinc-50 dark:bg-[#0d0d11] border rounded-xl p-6 transition-all duration-200 flex flex-col justify-between hover:shadow-sm animate-fadeIn relative group ${
+                        isPinned
+                          ? 'border-indigo-300 dark:border-indigo-800 ring-1 ring-indigo-400/20'
+                          : 'border-zinc-200 dark:border-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700'
+                      }`}
                     >
+                      {/* Pin badge */}
+                      {isPinned && (
+                        <div className="absolute top-3 left-3 flex items-center gap-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
+                          <Pin className="w-2.5 h-2.5" />
+                          <span>Pinned</span>
+                        </div>
+                      )}
+
                       {/* Absolute positioned subject edit controls */}
-                      <div className="absolute top-4 right-4 flex space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-3 right-3 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Pin / Unpin */}
+                        <button
+                          onClick={() => handleTogglePin(subj)}
+                          className={`p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg transition shadow-sm cursor-pointer border-none ${
+                            isPinned
+                              ? 'text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300'
+                              : canPin
+                              ? 'text-zinc-400 hover:text-indigo-500 dark:hover:text-indigo-400'
+                              : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed opacity-50'
+                          }`}
+                          title={isPinned ? 'Unpin from landing page' : pinnedCount >= 6 ? 'Max 6 pins reached' : 'Pin to landing page'}
+                          disabled={!isPinned && pinnedCount >= 6}
+                        >
+                          {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+                        </button>
                         <button
                           onClick={() => handleOpenEditSubject(subj)}
-                          className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition shadow-sm cursor-pointer border-none"
+                          className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition shadow-sm cursor-pointer border-none"
                           title="Edit Subject"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteSubject(subj.id)}
-                          className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-655 dark:text-red-400 hover:text-red-500 rounded-lg transition shadow-sm cursor-pointer border-none"
+                          className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-red-400 hover:text-red-500 rounded-lg transition shadow-sm cursor-pointer border-none"
                           title="Delete Subject"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      <div>
-                        <div className="inline-flex p-3 rounded-lg bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 mb-6 transition shadow-sm">
+                      <div className="mt-7">
+                        <div className={`inline-flex p-3 rounded-lg border mb-5 transition shadow-sm ${
+                          isPinned
+                            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20'
+                            : 'bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800'
+                        }`}>
                           <Icon className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-3">
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
                           {subj.title}
                         </h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed mb-8 font-medium line-clamp-3">
+                        <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed mb-6 font-medium line-clamp-3">
                           {subj.description}
                         </p>
                       </div>
                       
                       {/* Two distinct options: Manage Resources and Manage Practice Quiz */}
-                      <div className="mt-4 pt-6 border-t border-zinc-200 dark:border-zinc-900 flex justify-between gap-4">
+                      <div className="mt-2 pt-4 border-t border-zinc-200 dark:border-zinc-900 flex justify-between gap-3">
                         <button
                           onClick={() => navigate(`/resources/${subj.slug}`)}
                           className="flex-1 text-center py-2 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold rounded-lg transition cursor-pointer border border-zinc-200 dark:border-zinc-800"
@@ -485,6 +558,15 @@ const AdminDashboard = () => {
 
       </div>
 
+      {/* ICON PICKER MODAL */}
+      {subjectIconPickerOpen && (
+        <IconPicker
+          value={subjectIconName}
+          onChange={setSubjectIconName}
+          onClose={() => setSubjectIconPickerOpen(false)}
+        />
+      )}
+
       {/* SUBJECTS FORM MODAL */}
       {subjectModalOpen && (
         <div className="fixed inset-0 bg-zinc-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -497,50 +579,30 @@ const AdminDashboard = () => {
             </button>
 
             <h2 className="text-lg font-black mb-4 flex items-center border-b border-zinc-100 dark:border-zinc-800 pb-3 shrink-0">
-              <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2" />
+              {React.createElement(getIconComponent(subjectIconName), { className: 'w-5 h-5 text-indigo-600 dark:text-indigo-400 mr-2' })}
               {editingSubject ? 'Edit Subject Category' : 'Create New Subject'}
             </h2>
 
             <form onSubmit={handleSaveSubject} className="flex-grow flex flex-col overflow-hidden">
               <div className="flex-grow overflow-y-auto space-y-4 pr-2 pb-4 mb-4">
-                
-                {/* Title & Code */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Subject Title *</label>
-                    <input
-                      type="text"
-                      value={subjectTitle}
-                      onChange={(e) => handleSubjectTitleChange(e.target.value)}
-                      placeholder="e.g. Operating Systems"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Code *</label>
-                    <input
-                      type="text"
-                      value={subjectCode}
-                      onChange={(e) => setSubjectCode(e.target.value)}
-                      placeholder="e.g. OS"
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
-                      required
-                    />
-                  </div>
-                </div>
 
-                {/* Slug */}
+                {/* Subject Title */}
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">URL Slug (Generated) *</label>
+                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Subject Title *</label>
                   <input
                     type="text"
-                    value={subjectSlugState}
-                    onChange={(e) => setSubjectSlugState(e.target.value)}
-                    placeholder="e.g. operating-systems"
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs font-mono"
+                    value={subjectTitle}
+                    onChange={(e) => handleSubjectTitleChange(e.target.value)}
+                    placeholder="e.g. Operating Systems"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500 text-xs"
                     required
                   />
+                  {subjectTitle.trim() && (
+                    <p className="text-[10px] text-zinc-400 mt-1.5 font-mono">
+                      Code: <span className="text-indigo-500 font-bold">{generateCodeFromTitle(subjectTitle)}</span>
+                      {' · '}Slug: <span className="text-indigo-500 font-bold">{generateSlugFromTitle(subjectTitle)}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -555,29 +617,23 @@ const AdminDashboard = () => {
                   />
                 </div>
 
-                {/* Icon Selection & Show on Landing Toggle */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lucide Icon</label>
-                    <select
-                      value={subjectIconName}
-                      onChange={(e) => setSubjectIconName(e.target.value)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 text-xs text-zinc-600 dark:text-zinc-300"
-                    >
-                      {iconOptions.map(icon => <option key={icon} value={icon}>{icon}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex items-center pt-5">
-                    <label className="flex items-center cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={subjectShowOnLanding}
-                        onChange={(e) => setSubjectShowOnLanding(e.target.checked)}
-                        className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-800 text-indigo-600 bg-zinc-100 dark:bg-zinc-950 focus:ring-indigo-500 cursor-pointer"
-                      />
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-bold ml-2">Show on Landing</span>
-                    </label>
-                  </div>
+                {/* Icon Selection */}
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase">Lucide Icon</label>
+                  <button
+                    type="button"
+                    onClick={() => setSubjectIconPickerOpen(true)}
+                    className="w-full flex items-center gap-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-400 dark:hover:border-indigo-600 rounded-xl px-3.5 py-2.5 transition cursor-pointer text-left group"
+                  >
+                    <div className="p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm shrink-0 group-hover:border-indigo-300 dark:group-hover:border-indigo-700 transition">
+                      {React.createElement(getIconComponent(subjectIconName), { className: 'w-5 h-5 text-indigo-600 dark:text-indigo-400' })}
+                    </div>
+                    <div className="flex-grow min-w-0">
+                      <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 block">{subjectIconName}</span>
+                      <span className="text-[10px] text-zinc-400">Click to browse all icons</span>
+                    </div>
+                    <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  </button>
                 </div>
 
               </div>

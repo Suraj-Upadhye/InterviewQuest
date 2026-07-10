@@ -124,23 +124,33 @@ public class QuizServiceImpl implements QuizService {
         String topicTitle = syllabusTopic != null ? syllabusTopic.getTitle() : "General Concepts";
         String subjectTitle = subject != null ? subject.getTitle() : "Computer Science";
 
+        // Parse list of requested difficulties to display in prompt
+        String reqDifficulty = request.getDifficulty();
+        if (reqDifficulty == null || reqDifficulty.isBlank()) {
+            reqDifficulty = "MEDIUM";
+        }
+
         String prompt = String.format(
-                "Generate exactly %d multiple choice questions (MCQs) for the topic \"%s\" under the subject \"%s\". " +
-                "Difficulty level: %s.\n\n" +
-                "You MUST return the output ONLY as a valid JSON array of objects. Do not wrap the JSON in markdown code blocks, do not include any explanatory text, only return raw JSON.\n" +
+                "Generate exactly %d multiple choice questions (MCQs) for the topic \"%s\" under the subject \"%s\".\n" +
+                "Target difficulty options: %s.\n\n" +
+                "Requirements:\n" +
+                "1. Assign a difficulty ('EASY', 'MEDIUM', or 'HARD') to each question matching one of the target options.\n" +
+                "2. Some questions should have multiple correct answers (multi-select). For those, return them in the 'correctAnswer' string separated by '||' (e.g., 'Option A||Option C'). For single-correct questions, return a single option.\n" +
+                "3. You MUST return the output ONLY as a valid JSON array of objects. Do not wrap the JSON in markdown code blocks, do not include any explanatory text, only return raw JSON.\n\n" +
                 "Each JSON object in the array must have the exact structure:\n" +
                 "{\n" +
                 "  \"questionText\": \"The text of the question\",\n" +
+                "  \"difficulty\": \"EASY or MEDIUM or HARD\",\n" +
                 "  \"options\": [\n" +
                 "    \"Option A description\",\n" +
                 "    \"Option B description\",\n" +
                 "    \"Option C description\",\n" +
                 "    \"Option D description\"\n" +
                 "  ],\n" +
-                "  \"correctAnswer\": \"The exact option string that is correct (must match one of the options array exactly)\",\n" +
+                "  \"correctAnswer\": \"The correct option or options separated by || (must match option strings exactly)\",\n" +
                 "  \"explanation\": \"Detailed explanation of why this answer is correct\"\n" +
                 "}",
-                request.getNumQuestions(), topicTitle, subjectTitle, request.getDifficulty()
+                request.getNumQuestions(), topicTitle, subjectTitle, reqDifficulty
         );
 
         try {
@@ -163,10 +173,34 @@ public class QuizServiceImpl implements QuizService {
                 }
                 String correctAnswer = qNode.path("correctAnswer").asText();
                 String explanation = qNode.path("explanation").asText();
+                String diffStr = qNode.path("difficulty").asText();
 
-                // Validation to make sure correctAnswer is within options
-                if (!options.contains(correctAnswer) && !options.isEmpty()) {
+                // Validate and parse difficulty
+                Difficulty questionDifficulty = Difficulty.MEDIUM;
+                try {
+                    if (diffStr != null && !diffStr.isBlank()) {
+                        questionDifficulty = Difficulty.valueOf(diffStr.trim().toUpperCase());
+                    } else {
+                        // Fallback to first difficulty in the requested list
+                        String firstDiff = reqDifficulty.split(",")[0].trim().toUpperCase();
+                        questionDifficulty = Difficulty.valueOf(firstDiff);
+                    }
+                } catch (Exception ex) {
+                    questionDifficulty = Difficulty.MEDIUM;
+                }
+
+                // Validation to make sure correctAnswer options are within the options list
+                List<String> validCorrects = new ArrayList<>();
+                for (String ans : correctAnswer.split("\\|\\|")) {
+                    String trimmedAns = ans.trim();
+                    if (options.contains(trimmedAns)) {
+                        validCorrects.add(trimmedAns);
+                    }
+                }
+                if (validCorrects.isEmpty() && !options.isEmpty()) {
                     correctAnswer = options.get(0); // Fallback
+                } else {
+                    correctAnswer = String.join("||", validCorrects);
                 }
 
                 Question question = Question.builder()
@@ -174,7 +208,7 @@ public class QuizServiceImpl implements QuizService {
                         .options(options)
                         .correctAnswer(correctAnswer)
                         .explanation(explanation)
-                        .difficulty(request.getDifficulty() != null ? Difficulty.valueOf(request.getDifficulty().toUpperCase()) : Difficulty.MEDIUM)
+                        .difficulty(questionDifficulty)
                         .isAiGenerated(true)
                         .quiz(quiz)
                         .build();
@@ -226,9 +260,18 @@ public class QuizServiceImpl implements QuizService {
                 continue; // Skip or handle missing
             }
 
-            boolean isCorrect = question.getCorrectAnswer().trim().equalsIgnoreCase(
-                    answer.getSubmittedAnswer() != null ? answer.getSubmittedAnswer().trim() : ""
-            );
+            // Split correct and submitted by "||", trim, sort, and compare in order-independent way
+            List<String> correctList = Arrays.stream(question.getCorrectAnswer().split("\\|\\|"))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .sorted()
+                    .collect(Collectors.toList());
+            List<String> submittedList = Arrays.stream((answer.getSubmittedAnswer() != null ? answer.getSubmittedAnswer() : "").split("\\|\\|"))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .sorted()
+                    .collect(Collectors.toList());
+            boolean isCorrect = correctList.equals(submittedList);
 
             if (isCorrect) {
                 score++;
@@ -327,9 +370,18 @@ public class QuizServiceImpl implements QuizService {
                 continue;
             }
 
-            boolean isCorrect = question.getCorrectAnswer().trim().equalsIgnoreCase(
-                    answer.getSubmittedAnswer() != null ? answer.getSubmittedAnswer().trim() : ""
-            );
+            // Split correct and submitted by "||", trim, sort, and compare in order-independent way
+            List<String> correctList = Arrays.stream(question.getCorrectAnswer().split("\\|\\|"))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .sorted()
+                    .collect(Collectors.toList());
+            List<String> submittedList = Arrays.stream((answer.getSubmittedAnswer() != null ? answer.getSubmittedAnswer() : "").split("\\|\\|"))
+                    .map(String::trim)
+                    .map(String::toLowerCase)
+                    .sorted()
+                    .collect(Collectors.toList());
+            boolean isCorrect = correctList.equals(submittedList);
 
             if (isCorrect) {
                 score++;
